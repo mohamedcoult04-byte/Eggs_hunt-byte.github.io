@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+$<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -7,141 +7,107 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --primary: #c2410c; 
-            --accent: #22c55e; 
-            --light-pink: #fdf2f8;
-            --light-green: #f0fdf4;
-            --text: #166534;
+            --primary: #c2410c; --accent: #22c55e; --pink: #f9a8d4;
+            --light-pink: #fdf2f8; --light-green: #f0fdf4; --text: #166534;
         }
-        
         body { 
-            font-family: 'Inter', sans-serif; 
-            margin: 0; 
+            font-family: 'Inter', sans-serif; margin: 0; 
             background: linear-gradient(135deg, var(--light-pink), var(--light-green)); 
-            text-align: center; 
-            color: var(--text); 
-            min-height: 100vh;
+            color: var(--text); min-height: 100vh;
         }
-        
-        #app { max-width: 480px; margin: auto; padding: 20px; }
-        
-        /* CARTES */
+
+        /* Layout Dynamique */
+        #main-container {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .side-panel { flex: 1; min-width: 300px; max-width: 350px; }
+        .game-panel { flex: 2; min-width: 350px; max-width: 600px; }
+
         .card { 
-            background: rgba(255, 255, 255, 0.9); 
-            padding: 25px; 
-            border-radius: 25px; 
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); 
-            margin-top: 20px; 
-            border: 3px solid #f9a8d4; 
+            background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 25px; 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); border: 3px solid var(--pink); 
+            margin-bottom: 20px;
         }
 
-        h1 { 
-            margin-top: 0; 
-            color: var(--primary); 
-            font-size: 1.8rem; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 10px;
-        }
+        h1, h3 { color: var(--primary); text-align: center; margin-top: 0; }
+        #stylized-text { font-family: 'Pacifico', cursive; color: #92400e; font-size: 1rem; text-align: center; }
 
-        /* TEXTE DE L'IMAGE RE-RAJOUTÉ */
-        #stylized-text { 
-            font-family: 'Pacifico', cursive; 
-            color: #92400e; 
-            font-size: 1.1rem; 
-            line-height: 1.6;
-            margin: 15px 0;
-        }
-
-        .player-tag {
-            font-size: 0.85rem;
-            background: #f0fdf4;
-            padding: 5px 15px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 10px;
-            border: 1px solid #86efac;
-        }
-
-        #display-name-input {
-            border: none; background: transparent; font-weight: 600;
-            color: var(--primary); text-align: center; width: 100px;
-            border-bottom: 1px dashed var(--primary);
-        }
-
-        /* GRILLE & JEU */
-        .section-title { font-weight: bold; color: var(--text); margin: 20px 0 10px; }
-        .egg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; justify-items: center; }
-        .egg-slot { width: 60px; height: 60px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        /* Grille d'œufs */
+        .egg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; justify-items: center; }
+        .egg-slot { width: 65px; height: 65px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
         .egg { opacity: 0.1; transition: 0.5s; }
         .egg.found { opacity: 1; transform: scale(1.1); }
 
-        .alert-card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #eee; color: #666; font-style: italic; }
-        #proximity-alert { background: #fef9c3; border-color: #facc15; color: #854d0e; font-style: normal; font-weight: bold; margin-bottom: 15px; }
+        /* Alertes */
+        .alert-card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #eee; text-align: center; font-style: italic; }
+        #proximity-alert { background: #fef9c3; border-color: #facc15; color: #854d0e; font-style: normal; font-weight: bold; }
 
-        button { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; border: none; padding: 18px; border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
-        
-        /* AUTH */
-        input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
+        /* Tableau Classement */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding-bottom: 10px; border-bottom: 2px solid #eee; }
+        td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+
         .hidden { display: none !important; }
+        input[type="text"] { border: none; background: transparent; font-weight: 600; color: var(--primary); border-bottom: 1px dashed var(--primary); width: 80px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <div id="auth-screen" class="card">
-        <h2 id="auth-title">Connexion</h2>
-        <form id="auth-form">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="pass" placeholder="Mot de passe" required>
-            <div id="confirm-box" class="hidden">
-                <input type="password" id="confirm-pass" placeholder="Confirmer mot de passe">
-            </div>
-            <button type="submit" style="background: var(--accent); margin-top: 10px;">C'est parti !</button>
-        </form>
-        <p id="toggle-auth" style="cursor:pointer; font-size: 0.8rem; margin-top: 15px; text-decoration: underline;">S'inscrire</p>
+<div id="main-container">
+    <div class="side-panel">
+        <div class="card">
+            <h3>📊 TOP Chasseurs</h3>
+            <div id="leaderboard">Chargement...</div>
+        </div>
     </div>
 
-    <div id="game-screen" class="hidden">
-        <header class="card">
-            <h1>🏆 La Chasse aux Œuf 🏆</h1>
-            <p id="stylized-text">
-                "7 œufs sont cachés dans toutes l'école,<br>
-                aussi bien au nord, au centre qu'au sud.<br>
-                Aucun indice. Faites confiance à votre instinct<br>
-                pour les retrouver... Sur ce, bonnes chances !"
-            </p>
-            <div class="player-tag">
-                Joueur : <input type="text" id="display-name-input"> | <span id="logout" style="cursor:pointer; color:red">Quitter</span>
+    <div class="game-panel">
+        <div id="auth-screen" class="card">
+            <h2>Connexion</h2>
+            <p>Connecte-toi pour enregistrer tes œufs !</p>
+            <input type="email" id="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="password" id="pass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button id="login-btn" style="width:100%; padding:10px; background:var(--accent); border:none; color:white; border-radius:10px;">Entrer</button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <header class="card">
+                <h1>🏆 La Grande Quête 🏆</h1>
+                <p id="stylized-text">"7 œufs sont cachés au sein de toutes l'école
+                    Sud, Centre, Nord à vous de jouer!... faites confiance à votre instinct !"</p>
+                <div style="text-align:center; font-size: 0.8rem;">
+                    Joueur : <input type="text" id="display-name-input"> | <span id="logout" style="color:red; cursor:pointer">Quitter</span>
+                </div>
+            </header>
+
+            <div class="card">
+                <p style="text-align:center; font-weight:bold;">Tes Œufs : <span id="found-count">0</span> / 7</p>
+                <div class="egg-grid" id="grid"></div>
             </div>
-        </header>
 
-        <p class="section-title">Tes Œufs Trouvés : <span id="found-count">0</span> / 7</p>
-        <div class="egg-grid" id="grid"></div>
-
-        <div id="game-controls">
             <div id="proximity-alert" class="alert-card hidden">
-                ✨ Oh! On dirait qu'il y a un œuf à proximité... 👀
-            </div>
-
-            <div id="scan-container" class="hidden">
-                <button id="scan-btn">Scanner la zone 📍</button>
-                <p id="feedback" style="font-weight:bold; margin-top:10px;"></p>
-                <p id="distance-info" style="font-size:1.8rem; font-weight:bold; color:var(--primary);"></p>
+                ✨ Oh ! Un œuf n'est plus très loin... 👀
             </div>
 
             <div id="no-detection-msg" class="alert-card">
-                Fais confiance à ton instinct... Déplace-toi ! 🐇
+                Déplace-toi dans l'école pour détecter les œufs ! 🐇
             </div>
         </div>
     </div>
 </div>
 
 <script type="module">
+    // --- Initialisation Firebase (Inchangée) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBSA_eROf2jmyC0cQiJHbZcgJy41VFsiUE",
@@ -156,42 +122,73 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Positions des œufs (Coordonnées de ton école)
     const zones = [
-        { id: 1, lat: 6.867823981530635, lng: -5.238773292596478, radius: 10 },
-        { id: 2, lat: 6.869281321858125, lng: -5.238154544715172, radius: 10 },
-        { id: 3, lat: 6.889617794392529, lng: -5.225257770215485, radius: 10 },
-        { id: 4, lat: 6.881397554166114, lng: -5.229903468677372, radius: 10 },
-        { id: 5, lat: 6.878952452329767, lng: -5.229979638911694, radius: 10 },
-        { id: 6, lat: 6.88101375560602,  lng: -5.232480396149623, radius: 10 },
-        { id: 7, lat: 6.873142190439744, lng: -5.232953838358331, radius: 10 }
+        { id: 1, lat: 6.86782, lng: -5.23877, radius: 5 }, 
+        { id: 2, lat: 6.86928, lng: -5.23815, radius: 5 },
+        { id: 3, lat: 6.88961, lng: -5.22525, radius: 5 },
+        { id: 4, lat: 6.88139, lng: -5.22990, radius: 5 },
+        { id: 5, lat: 6.87895, lng: -5.22997, radius: 5 },
+        { id: 6, lat: 6.88101, lng: -5.23248, radius: 5 },
+        { id: 7, lat: 6.87314, lng: -5.23295, radius: 5 }
     ];
 
     let foundEggs = [];
 
-    // AUTH LOGIQUE
-    const toggleBtn = document.getElementById('toggle-auth');
-    let isLogin = true;
+    // --- Logique GPS Précise ---
+    function startGPS() {
+        navigator.geolocation.watchPosition(async (pos) => {
+            const uLat = pos.coords.latitude;
+            const uLng = pos.coords.longitude;
+            
+            let isNearAny = false;
 
-    toggleBtn.onclick = () => {
-        isLogin = !isLogin;
-        document.getElementById('auth-title').innerText = isLogin ? "Connexion" : "Inscription";
-        document.getElementById('confirm-box').classList.toggle('hidden', isLogin);
-    };
+            for (const z of zones) {
+                if (foundEggs.includes(z.id)) continue;
 
-    document.getElementById('auth-form').onsubmit = async (e) => {
-        e.preventDefault();
+                const dist = getDist(uLat, uLng, z.lat, z.lng);
+
+                // Si on est à moins de 15m, on affiche l'alerte
+                if (dist < 15) isNearAny = true;
+
+                // Si on est à moins de 5m, on valide l'œuf automatiquement !
+                if (dist <= z.radius) {
+                    foundEggs.push(z.id);
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { 
+                        foundEggs: foundEggs,
+                        score: foundEggs.length 
+                    }, { merge: true });
+                    alert("Bravo ! Tu as trouvé un œuf ! 🎉");
+                }
+            }
+
+            document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
+            document.getElementById('no-detection-msg').classList.toggle('hidden', isNearAny);
+
+        }, (err) => console.error(err), { enableHighAccuracy: true });
+    }
+
+    // --- Reste du code (Leaderboard & UI) ---
+    function loadLeaderboard() {
+        const q = query(collection(db, "users"), orderBy("score", "desc"), limit(10));
+        onSnapshot(q, (snap) => {
+            let html = '<table><tr><th>#</th><th>Joueur</th><th>Pts</th></tr>';
+            let rank = 1;
+            snap.forEach(doc => {
+                const d = doc.data();
+                html += `<tr><td>${rank==1?'🥇':rank}</td><td>${d.pseudo || 'Anonyme'}</td><td>${d.score || 0}</td></tr>`;
+                rank++;
+            });
+            document.getElementById('leaderboard').innerHTML = html + '</table>';
+        });
+    }
+
+    // Auth simple pour le test
+    document.getElementById('login-btn').onclick = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        try {
-            if (isLogin) await signInWithEmailAndPassword(auth, email, pass);
-            else {
-                const res = await createUserWithEmailAndPassword(auth, email, pass);
-                await setDoc(doc(db, "users", res.user.uid), { foundEggs: [], pseudo: email.split('@')[0] });
-            }
-        } catch (err) { alert(err.message); }
+        signInWithEmailAndPassword(auth, email, pass);
     };
-
-    document.getElementById('logout').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -200,70 +197,21 @@
             onSnapshot(doc(db, "users", user.uid), (d) => {
                 if (d.exists()) {
                     foundEggs = d.data().foundEggs || [];
-                    document.getElementById('display-name-input').value = d.data().pseudo || "";
                     document.getElementById('found-count').innerText = foundEggs.length;
+                    document.getElementById('display-name-input').value = d.data().pseudo || "";
                     drawGrid();
                 }
             });
             startGPS();
-        } else {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('game-screen').classList.add('hidden');
+            loadLeaderboard();
         }
     });
 
-    // Sauvegarde pseudo
-    document.getElementById('display-name-input').onblur = async (e) => {
-        await setDoc(doc(db, "users", auth.currentUser.uid), { pseudo: e.target.value }, { merge: true });
-    };
-
     function drawGrid() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
+        const grid = document.getElementById('grid'); grid.innerHTML = '';
         const emojis = ['🥚', '🍫', '🐣', '🎁', '🐰', '🍯', '✨'];
-        for(let i=1; i<=7; i++) {
-            grid.innerHTML += `<div class="egg-slot"><span class="egg ${foundEggs.includes(i)?'found':''}">${emojis[i-1]}</span></div>`;
-        }
+        for(let i=1; i<=7; i++) grid.innerHTML += `<div class="egg-slot"><span class="egg ${foundEggs.includes(i)?'found':''}">${emojis[i-1]}</span></div>`;
     }
-
-    function startGPS() {
-        navigator.geolocation.watchPosition((pos) => {
-            const uLat = pos.coords.latitude;
-            const uLng = pos.coords.longitude;
-            let near = false;
-            zones.forEach(z => {
-                if (!foundEggs.includes(z.id) && getDist(uLat, uLng, z.lat, z.lng) < 50) near = true;
-            });
-            document.getElementById('proximity-alert').classList.toggle('hidden', !near);
-            document.getElementById('scan-container').classList.toggle('hidden', !near);
-            document.getElementById('no-detection-msg').classList.toggle('hidden', near);
-        }, null, { enableHighAccuracy: true });
-    }
-
-    document.getElementById('scan-btn').onclick = () => {
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            const uLat = pos.coords.latitude;
-            const uLng = pos.coords.longitude;
-            let foundNow = null;
-            let minDist = Infinity;
-
-            zones.forEach(z => {
-                if (!foundEggs.includes(z.id)) {
-                    const d = getDist(uLat, uLng, z.lat, z.lng);
-                    if (d < minDist) minDist = d;
-                    if (d <= z.radius) foundNow = z.id;
-                }
-            });
-
-            if (foundNow) {
-                foundEggs.push(foundNow);
-                await setDoc(doc(db, "users", auth.currentUser.uid), { foundEggs }, { merge: true });
-                alert("Œuf trouvé ! 🎉");
-            } else {
-                document.getElementById('distance-info').innerText = Math.round(minDist) + " m";
-            }
-        });
-    };
 
     function getDist(lat1, lon1, lat2, lon2) {
         const R = 6371e3;
