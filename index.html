@@ -53,7 +53,7 @@
         .hidden { display: none !important; }
         input[type="text"] { border: none; background: transparent; font-weight: 600; color: var(--primary); border-bottom: 1px dashed var(--primary); width: 100px; text-align: center; }
         input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
-        button { cursor: pointer; transition: 0.3s; }
+        button { cursor: pointer; transition: 0.3s; width: 100%; padding: 15px; background: var(--accent); border: none; color: white; border-radius: 15px; font-weight: bold; margin-top: 10px; }
         button:hover { opacity: 0.8; }
     </style>
 </head>
@@ -73,7 +73,7 @@
             <p style="text-align:center; font-size:0.9rem;">Entre tes identifiants pour participer !</p>
             <input type="email" id="email" placeholder="Email (ex: momo@ecole.ci)">
             <input type="password" id="pass" placeholder="Mot de passe">
-            <button id="login-btn" style="width:100%; padding:15px; background:var(--accent); border:none; color:white; border-radius:15px; font-weight:bold; margin-top:10px;">SE CONNECTER / S'INSCRIRE</button>
+            <button id="login-btn">SE CONNECTER / S'INSCRIRE</button>
         </div>
 
         <div id="game-screen" class="hidden">
@@ -104,7 +104,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBSA_eROf2jmyC0cQiJHbZcgJy41VFsiUE",
@@ -131,26 +131,30 @@
 
     let foundEggs = [];
 
-    // --- CLASSEMENT (DYNAMIQUE) ---
+    // --- LEADERBOARD RÉPARÉ ---
     function loadLeaderboard() {
-        const q = query(collection(db, "users"), orderBy("score", "desc"), limit(20));
-        onSnapshot(q, (snap) => {
+        const usersRef = collection(db, "users");
+        onSnapshot(usersRef, (snap) => {
             if (snap.empty) {
                 document.getElementById('leaderboard').innerHTML = "<p>Aucun joueur pour le moment.</p>";
                 return;
             }
-            let html = '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
-            let rank = 1;
+            let players = [];
             snap.forEach(doc => {
                 const d = doc.data();
-                const pseudo = d.pseudo || "Anonyme";
-                const score = d.score || 0;
-                html += `<tr>
-                    <td>${rank == 1 ? '🥇' : rank == 2 ? '🥈' : rank == 3 ? '🥉' : rank}</td>
-                    <td><strong>${pseudo}</strong></td>
-                    <td>${score} / 7</td>
-                </tr>`;
-                rank++;
+                players.push({
+                    pseudo: d.pseudo || "Anonyme",
+                    score: d.score || 0
+                });
+            });
+
+            // Tri manuel par score décroissant
+            players.sort((a, b) => b.score - a.score);
+
+            let html = '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
+            players.slice(0, 15).forEach((p, i) => {
+                let medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : (i + 1);
+                html += `<tr><td>${medal}</td><td><strong>${p.pseudo}</strong></td><td>${p.score}/7</td></tr>`;
             });
             document.getElementById('leaderboard').innerHTML = html + '</table>';
         });
@@ -167,12 +171,11 @@
         } catch (e) {
             try {
                 const res = await createUserWithEmailAndPassword(auth, email, pass);
-                // Création initiale du profil pour le classement
                 await setDoc(doc(db, "users", res.user.uid), {
                     pseudo: email.split('@')[0],
                     score: 0,
                     foundEggs: []
-                });
+                }, { merge: true });
             } catch (err) { alert("Erreur : " + err.message); }
         }
     };
@@ -184,9 +187,7 @@
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
             
-            const userDocRef = doc(db, "users", user.uid);
-            
-            onSnapshot(userDocRef, (d) => {
+            onSnapshot(doc(db, "users", user.uid), (d) => {
                 if (d.exists()) {
                     foundEggs = d.data().foundEggs || [];
                     document.getElementById('found-count').innerText = foundEggs.length;
@@ -202,15 +203,13 @@
         }
     });
 
-    // --- MISE À JOUR PSEUDO ---
     document.getElementById('display-name-input').onblur = async (e) => {
         const newPseudo = e.target.value;
-        if(newPseudo) {
+        if(newPseudo && auth.currentUser) {
             await setDoc(doc(db, "users", auth.currentUser.uid), { pseudo: newPseudo }, { merge: true });
         }
     };
 
-    // --- GPS ---
     function startGPS() {
         navigator.geolocation.watchPosition(async (pos) => {
             const uLat = pos.coords.latitude;
@@ -223,14 +222,12 @@
 
                 if (dist < 15) isNearAny = true;
                 if (dist <= z.radius) {
-                    if (!foundEggs.includes(z.id)) {
-                        foundEggs.push(z.id);
-                        await setDoc(doc(db, "users", auth.currentUser.uid), { 
-                            foundEggs: foundEggs,
-                            score: foundEggs.length 
-                        }, { merge: true });
-                        alert("🎉 BRAVO ! Tu as trouvé un œuf !");
-                    }
+                    foundEggs.push(z.id);
+                    await setDoc(doc(db, "users", auth.currentUser.uid), { 
+                        foundEggs: foundEggs,
+                        score: foundEggs.length 
+                    }, { merge: true });
+                    alert("🎉 BRAVO ! Tu as trouvé un œuf !");
                 }
             }
             document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
