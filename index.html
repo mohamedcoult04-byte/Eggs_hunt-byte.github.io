@@ -100,7 +100,6 @@
         </div>
     </div>
 </div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -131,44 +130,68 @@
 
     let foundEggs = [];
 
-    // --- LEADERBOARD (SORTI DE L'AUTH POUR CHARGER DIRECTEMENT) ---
+    // --- LEADERBOARD OPTIMISÉ POUR 100+ JOUEURS ---
     function loadLeaderboard() {
         const boardDiv = document.getElementById('leaderboard');
+        
         onSnapshot(collection(db, "users"), (snap) => {
             if (snap.empty) {
-                boardDiv.innerHTML = "<p>Aucun chasseur pour le moment.</p>";
+                boardDiv.innerHTML = "<p>En attente des chasseurs...</p>";
                 return;
             }
+
             let players = [];
             snap.forEach(doc => {
                 const d = doc.data();
                 players.push({
+                    id: doc.id,
                     pseudo: d.pseudo || "Anonyme",
                     score: d.score || 0
                 });
             });
 
+            // Tri par score décroissant
             players.sort((a, b) => b.score - a.score);
 
-            let html = '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
-            players.slice(0, 15).forEach((p, i) => {
-                let medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : (i + 1);
-                html += `<tr><td>${medal}</td><td><strong>${p.pseudo}</strong></td><td>${p.score}/7</td></tr>`;
+            const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
+            const myIndex = players.findIndex(p => p.id === currentUserId);
+            
+            let html = '<div style="max-height: 400px; overflow-y: auto;">';
+            html += '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
+
+            players.forEach((p, i) => {
+                const isMe = p.id === currentUserId;
+                const isTop10 = i < 10;
+
+                // On affiche si : c'est le top 10 OU si c'est moi
+                if (isTop10 || isMe) {
+                    // Si on affiche "Moi" et qu'on n'est pas dans le top 10, on met un séparateur
+                    if (!isTop10 && isMe && i > 10) {
+                        html += '<tr><td colspan="3" style="text-align:center; font-size:0.7rem; color:#999;">••• ton rang •••</td></tr>';
+                    }
+
+                    let medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : (i + 1);
+                    let rowStyle = isMe ? 'background: #fef9c3; border: 2px solid var(--accent);' : '';
+                    
+                    html += `<tr style="${rowStyle}">
+                                <td>${medal}</td>
+                                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis;">
+                                    <strong>${p.pseudo}</strong>${isMe ? ' <small>(Toi)</small>' : ''}
+                                </td>
+                                <td>${p.score}/7</td>
+                             </tr>`;
+                }
             });
-            boardDiv.innerHTML = html + '</table>';
-        }, (error) => {
-            boardDiv.innerHTML = `<p style="color:red; font-size:0.7rem;">Erreur : ${error.message}</p>`;
+
+            boardDiv.innerHTML = html + '</table></div>';
         });
     }
-
-    // Lancement immédiat du classement
-    loadLeaderboard();
 
     // --- AUTHENTIFICATION ---
     document.getElementById('login-btn').onclick = async () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        if(!email || !pass) return alert("Remplis tous les champs !");
+        if(!email || !pass) return alert("Identifiants requis !");
         
         try {
             await signInWithEmailAndPassword(auth, email, pass);
@@ -187,6 +210,7 @@
     document.getElementById('logout').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, async (user) => {
+        loadLeaderboard(); // Recharge le classement avec le focus sur l'utilisateur
         if (user) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
@@ -235,7 +259,7 @@
             }
             document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
             document.getElementById('no-detection-msg').classList.toggle('hidden', isNearAny);
-        }, null, { enableHighAccuracy: true });
+        }, (err) => console.error("GPS Error:", err), { enableHighAccuracy: true });
     }
 
     function drawGrid() {
