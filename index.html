@@ -79,7 +79,7 @@
         <div id="game-screen" class="hidden">
             <header class="card">
                 <h1>🏆 La Grande Quête 🏆</h1>
-                <p id="stylized-text">"7 œufs sont cachés au sein de toute l'école... Sud, Centre, Nord : à vous de jouer !"</p>
+                <p id="stylized-text">"7 œufs sont cachés au sein de toute l'école..."</p>
                 <div style="text-align:center; font-size: 0.85rem; background: #fff5f5; padding: 10px; border-radius: 15px;">
                     Joueur : <input type="text" id="display-name-input" placeholder="Ton Pseudo"> | <span id="logout" style="color:red; cursor:pointer; font-weight:bold;">Quitter</span>
                 </div>
@@ -131,12 +131,12 @@
 
     let foundEggs = [];
 
-    // --- LEADERBOARD RÉPARÉ ---
+    // --- LEADERBOARD (SORTI DE L'AUTH POUR CHARGER DIRECTEMENT) ---
     function loadLeaderboard() {
-        const usersRef = collection(db, "users");
-        onSnapshot(usersRef, (snap) => {
+        const boardDiv = document.getElementById('leaderboard');
+        onSnapshot(collection(db, "users"), (snap) => {
             if (snap.empty) {
-                document.getElementById('leaderboard').innerHTML = "<p>Aucun joueur pour le moment.</p>";
+                boardDiv.innerHTML = "<p>Aucun chasseur pour le moment.</p>";
                 return;
             }
             let players = [];
@@ -148,7 +148,6 @@
                 });
             });
 
-            // Tri manuel par score décroissant
             players.sort((a, b) => b.score - a.score);
 
             let html = '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
@@ -156,9 +155,14 @@
                 let medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : (i + 1);
                 html += `<tr><td>${medal}</td><td><strong>${p.pseudo}</strong></td><td>${p.score}/7</td></tr>`;
             });
-            document.getElementById('leaderboard').innerHTML = html + '</table>';
+            boardDiv.innerHTML = html + '</table>';
+        }, (error) => {
+            boardDiv.innerHTML = `<p style="color:red; font-size:0.7rem;">Erreur : ${error.message}</p>`;
         });
     }
+
+    // Lancement immédiat du classement
+    loadLeaderboard();
 
     // --- AUTHENTIFICATION ---
     document.getElementById('login-btn').onclick = async () => {
@@ -196,7 +200,6 @@
                 }
             });
             startGPS();
-            loadLeaderboard();
         } else {
             document.getElementById('auth-screen').classList.remove('hidden');
             document.getElementById('game-screen').classList.add('hidden');
