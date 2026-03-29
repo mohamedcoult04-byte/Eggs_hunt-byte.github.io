@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chasse aux Œufs 2026 - Momo0345</title>
+    <title>La Chasse Aux Œufs 2026 - Momo0345</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -37,6 +37,7 @@
 
         h1, h3 { color: var(--primary); text-align: center; margin-top: 0; }
         
+        /* Style du nouveau message */
         #stylized-text { 
             font-family: 'Inter', sans-serif; 
             color: #92400e; 
@@ -96,9 +97,11 @@
 
         <div id="game-screen" class="hidden">
             <header class="card">
-                <h1>🥚 La Chasse Aux Œuf  🥚</h1>
+                <h1>🏆 La Chasse Aux Œuf 🏆</h1>
                 <div id="stylized-text">
-                    7 œufs sont cachés dans toute l'école, au nord, au centre et au sud. Aucun indice. Faites confiance à votre instinct...
+                    📍 <strong>7 œufs</strong> sont cachés dans toute l'école, au nord, au centre et au sud. 
+                    <br><br>
+                    🕵️‍♂️ Aucun indice. Faites confiance à votre instinct... <strong>Bonne chance !</strong>
                 </div>
                 <div style="text-align:center; font-size: 0.85rem; background: #fff5f5; padding: 10px; border-radius: 15px;">
                     Joueur : <input type="text" id="display-name-input" placeholder="Ton Pseudo"> | <span id="logout" style="color:red; cursor:pointer; font-weight:bold;">Quitter</span>
@@ -151,19 +154,18 @@
 
     let foundEggs = [];
 
+    // --- LEADERBOARD (SORTI DE L'AUTH POUR CHARGER DIRECTEMENT) ---
     function loadLeaderboard() {
         const boardDiv = document.getElementById('leaderboard');
         onSnapshot(collection(db, "users"), (snap) => {
             if (snap.empty) {
-                boardDiv.innerHTML = "<p>En attente des chasseurs...</p>";
+                boardDiv.innerHTML = "<p>Aucun chasseur pour le moment.</p>";
                 return;
             }
-
             let players = [];
             snap.forEach(doc => {
                 const d = doc.data();
                 players.push({
-                    id: doc.id,
                     pseudo: d.pseudo || "Anonyme",
                     score: d.score || 0
                 });
@@ -171,39 +173,25 @@
 
             players.sort((a, b) => b.score - a.score);
 
-            const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
-            let html = '<div style="max-height: 400px; overflow-y: auto;">';
-            html += '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
-
-            players.forEach((p, i) => {
-                const isMe = p.id === currentUserId;
-                const isTop10 = i < 10;
-
-                if (isTop10 || isMe) {
-                    if (!isTop10 && isMe && i > 10) {
-                        html += '<tr><td colspan="3" style="text-align:center; font-size:0.7rem; color:#999;">••• ton rang •••</td></tr>';
-                    }
-
-                    let medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : (i + 1);
-                    let rowStyle = isMe ? 'background: #fef9c3; border: 2px solid var(--accent);' : '';
-                    
-                    html += `<tr style="${rowStyle}">
-                                <td>${medal}</td>
-                                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis;">
-                                    <strong>${p.pseudo}</strong>${isMe ? ' <small>(Toi)</small>' : ''}
-                                </td>
-                                <td>${p.score}/7</td>
-                             </tr>`;
-                }
+            let html = '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
+            players.slice(0, 15).forEach((p, i) => {
+                let medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : (i + 1);
+                html += `<tr><td>${medal}</td><td><strong>${p.pseudo}</strong></td><td>${p.score}/7</td></tr>`;
             });
-            boardDiv.innerHTML = html + '</table></div>';
+            boardDiv.innerHTML = html + '</table>';
+        }, (error) => {
+            boardDiv.innerHTML = `<p style="color:red; font-size:0.7rem;">Erreur : ${error.message}</p>`;
         });
     }
 
+    // Lancement immédiat du classement
+    loadLeaderboard();
+
+    // --- AUTHENTIFICATION ---
     document.getElementById('login-btn').onclick = async () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        if(!email || !pass) return alert("Identifiants requis !");
+        if(!email || !pass) return alert("Remplis tous les champs !");
         
         try {
             await signInWithEmailAndPassword(auth, email, pass);
@@ -222,7 +210,6 @@
     document.getElementById('logout').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, async (user) => {
-        loadLeaderboard();
         if (user) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
@@ -261,17 +248,19 @@
 
                 if (dist < 15) isNearAny = true;
                 if (dist <= z.radius) {
-                    foundEggs.push(z.id);
-                    await setDoc(doc(db, "users", auth.currentUser.uid), { 
-                        foundEggs: foundEggs,
-                        score: foundEggs.length 
-                    }, { merge: true });
-                    alert("🎉 BRAVO ! Tu as trouvé un œuf !");
+                    if (!foundEggs.includes(z.id)) {
+                        foundEggs.push(z.id);
+                        await setDoc(doc(db, "users", auth.currentUser.uid), { 
+                            foundEggs: foundEggs,
+                            score: foundEggs.length 
+                        }, { merge: true });
+                        alert("🎉 BRAVO ! Tu as trouvé un œuf !");
+                    }
                 }
             }
             document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
             document.getElementById('no-detection-msg').classList.toggle('hidden', isNearAny);
-        }, (err) => console.error("GPS Error:", err), { enableHighAccuracy: true });
+        }, null, { enableHighAccuracy: true });
     }
 
     function drawGrid() {
