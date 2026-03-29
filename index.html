@@ -36,7 +36,20 @@
         }
 
         h1, h3 { color: var(--primary); text-align: center; margin-top: 0; }
-        #stylized-text { font-family: 'Pacifico', cursive; color: #92400e; font-size: 1rem; text-align: center; }
+        
+        /* Style du nouveau message */
+        #stylized-text { 
+            font-family: 'Inter', sans-serif; 
+            color: #92400e; 
+            font-size: 0.95rem; 
+            text-align: center; 
+            line-height: 1.5;
+            background: #fffbeb;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 5px solid #f59e0b;
+            margin: 15px 0;
+        }
 
         .egg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; justify-items: center; }
         .egg-slot { width: 65px; height: 65px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
@@ -44,7 +57,13 @@
         .egg.found { opacity: 1; transform: scale(1.1); }
 
         .alert-card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #eee; text-align: center; font-style: italic; }
-        #proximity-alert { background: #fef9c3; border-color: #facc15; color: #854d0e; font-style: normal; font-weight: bold; }
+        #proximity-alert { background: #fef9c3; border-color: #facc15; color: #854d0e; font-style: normal; font-weight: bold; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; padding-bottom: 10px; border-bottom: 2px solid #eee; font-size: 0.8rem; color: #666; }
@@ -79,7 +98,12 @@
         <div id="game-screen" class="hidden">
             <header class="card">
                 <h1>🏆 La Grande Quête 🏆</h1>
-                    <p id="stylized-text">"7 œufs sont cachés dans toute l'école, au nord, au centre et au sud. Aucun indice. Faites confiance à votre instinct... Bonne chance !"</p>                <div style="text-align:center; font-size: 0.85rem; background: #fff5f5; padding: 10px; border-radius: 15px;">
+                <div id="stylized-text">
+                    📍 <strong>7 œufs</strong> sont cachés dans toute l'école, au nord, au centre et au sud. 
+                    <br><br>
+                    🕵️‍♂️ Aucun indice. Faites confiance à votre instinct... <strong>Bonne chance !</strong>
+                </div>
+                <div style="text-align:center; font-size: 0.85rem; background: #fff5f5; padding: 10px; border-radius: 15px;">
                     Joueur : <input type="text" id="display-name-input" placeholder="Ton Pseudo"> | <span id="logout" style="color:red; cursor:pointer; font-weight:bold;">Quitter</span>
                 </div>
             </header>
@@ -99,6 +123,7 @@
         </div>
     </div>
 </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -129,10 +154,8 @@
 
     let foundEggs = [];
 
-    // --- LEADERBOARD OPTIMISÉ POUR 100+ JOUEURS ---
     function loadLeaderboard() {
         const boardDiv = document.getElementById('leaderboard');
-        
         onSnapshot(collection(db, "users"), (snap) => {
             if (snap.empty) {
                 boardDiv.innerHTML = "<p>En attente des chasseurs...</p>";
@@ -149,12 +172,9 @@
                 });
             });
 
-            // Tri par score décroissant
             players.sort((a, b) => b.score - a.score);
 
             const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
-            const myIndex = players.findIndex(p => p.id === currentUserId);
-            
             let html = '<div style="max-height: 400px; overflow-y: auto;">';
             html += '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
 
@@ -162,9 +182,7 @@
                 const isMe = p.id === currentUserId;
                 const isTop10 = i < 10;
 
-                // On affiche si : c'est le top 10 OU si c'est moi
                 if (isTop10 || isMe) {
-                    // Si on affiche "Moi" et qu'on n'est pas dans le top 10, on met un séparateur
                     if (!isTop10 && isMe && i > 10) {
                         html += '<tr><td colspan="3" style="text-align:center; font-size:0.7rem; color:#999;">••• ton rang •••</td></tr>';
                     }
@@ -181,12 +199,10 @@
                              </tr>`;
                 }
             });
-
             boardDiv.innerHTML = html + '</table></div>';
         });
     }
 
-    // --- AUTHENTIFICATION ---
     document.getElementById('login-btn').onclick = async () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
@@ -209,7 +225,7 @@
     document.getElementById('logout').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, async (user) => {
-        loadLeaderboard(); // Recharge le classement avec le focus sur l'utilisateur
+        loadLeaderboard();
         if (user) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
