@@ -1,4 +1,4 @@
-$<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -16,7 +16,6 @@ $<!DOCTYPE html>
             color: var(--text); min-height: 100vh;
         }
 
-        /* Layout Dynamique */
         #main-container {
             display: flex;
             flex-wrap: wrap;
@@ -39,23 +38,23 @@ $<!DOCTYPE html>
         h1, h3 { color: var(--primary); text-align: center; margin-top: 0; }
         #stylized-text { font-family: 'Pacifico', cursive; color: #92400e; font-size: 1rem; text-align: center; }
 
-        /* Grille d'œufs */
         .egg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; justify-items: center; }
         .egg-slot { width: 65px; height: 65px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
         .egg { opacity: 0.1; transition: 0.5s; }
         .egg.found { opacity: 1; transform: scale(1.1); }
 
-        /* Alertes */
         .alert-card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #eee; text-align: center; font-style: italic; }
         #proximity-alert { background: #fef9c3; border-color: #facc15; color: #854d0e; font-style: normal; font-weight: bold; }
 
-        /* Tableau Classement */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding-bottom: 10px; border-bottom: 2px solid #eee; }
-        td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        th { text-align: left; padding-bottom: 10px; border-bottom: 2px solid #eee; font-size: 0.8rem; color: #666; }
+        td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
 
         .hidden { display: none !important; }
-        input[type="text"] { border: none; background: transparent; font-weight: 600; color: var(--primary); border-bottom: 1px dashed var(--primary); width: 80px; text-align: center; }
+        input[type="text"] { border: none; background: transparent; font-weight: 600; color: var(--primary); border-bottom: 1px dashed var(--primary); width: 100px; text-align: center; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
+        button { cursor: pointer; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -64,36 +63,35 @@ $<!DOCTYPE html>
     <div class="side-panel">
         <div class="card">
             <h3>📊 TOP Chasseurs</h3>
-            <div id="leaderboard">Chargement...</div>
+            <div id="leaderboard">Chargement du classement...</div>
         </div>
     </div>
 
     <div class="game-panel">
         <div id="auth-screen" class="card">
             <h2>Connexion</h2>
-            <p>Connecte-toi pour enregistrer tes œufs !</p>
-            <input type="email" id="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
-            <input type="password" id="pass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
-            <button id="login-btn" style="width:100%; padding:10px; background:var(--accent); border:none; color:white; border-radius:10px;">Entrer</button>
+            <p style="text-align:center; font-size:0.9rem;">Entre tes identifiants pour participer !</p>
+            <input type="email" id="email" placeholder="Email (ex: momo@ecole.ci)">
+            <input type="password" id="pass" placeholder="Mot de passe">
+            <button id="login-btn" style="width:100%; padding:15px; background:var(--accent); border:none; color:white; border-radius:15px; font-weight:bold; margin-top:10px;">SE CONNECTER / S'INSCRIRE</button>
         </div>
 
         <div id="game-screen" class="hidden">
             <header class="card">
                 <h1>🏆 La Grande Quête 🏆</h1>
-                <p id="stylized-text">"7 œufs sont cachés au sein de toutes l'école
-                    Sud, Centre, Nord à vous de jouer!... faites confiance à votre instinct !"</p>
-                <div style="text-align:center; font-size: 0.8rem;">
-                    Joueur : <input type="text" id="display-name-input"> | <span id="logout" style="color:red; cursor:pointer">Quitter</span>
+                <p id="stylized-text">"7 œufs sont cachés au sein de toute l'école... Sud, Centre, Nord : à vous de jouer !"</p>
+                <div style="text-align:center; font-size: 0.85rem; background: #fff5f5; padding: 10px; border-radius: 15px;">
+                    Joueur : <input type="text" id="display-name-input" placeholder="Ton Pseudo"> | <span id="logout" style="color:red; cursor:pointer; font-weight:bold;">Quitter</span>
                 </div>
             </header>
 
             <div class="card">
-                <p style="text-align:center; font-weight:bold;">Tes Œufs : <span id="found-count">0</span> / 7</p>
+                <p style="text-align:center; font-weight:bold; margin-bottom:15px;">Tes Œufs : <span id="found-count" style="color:var(--primary); font-size:1.2rem;">0</span> / 7</p>
                 <div class="egg-grid" id="grid"></div>
             </div>
 
             <div id="proximity-alert" class="alert-card hidden">
-                ✨ Oh ! Un œuf n'est plus très loin... 👀
+                ✨ Oh ! Un œuf n'est plus très loin... Rapproche-toi ! 👀
             </div>
 
             <div id="no-detection-msg" class="alert-card">
@@ -104,10 +102,9 @@ $<!DOCTYPE html>
 </div>
 
 <script type="module">
-    // --- Initialisation Firebase (Inchangée) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBSA_eROf2jmyC0cQiJHbZcgJy41VFsiUE",
@@ -122,7 +119,6 @@ $<!DOCTYPE html>
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Positions des œufs (Coordonnées de ton école)
     const zones = [
         { id: 1, lat: 6.86782, lng: -5.23877, radius: 5 }, 
         { id: 2, lat: 6.86928, lng: -5.23815, radius: 5 },
@@ -135,66 +131,62 @@ $<!DOCTYPE html>
 
     let foundEggs = [];
 
-    // --- Logique GPS Précise ---
-    function startGPS() {
-        navigator.geolocation.watchPosition(async (pos) => {
-            const uLat = pos.coords.latitude;
-            const uLng = pos.coords.longitude;
-            
-            let isNearAny = false;
-
-            for (const z of zones) {
-                if (foundEggs.includes(z.id)) continue;
-
-                const dist = getDist(uLat, uLng, z.lat, z.lng);
-
-                // Si on est à moins de 15m, on affiche l'alerte
-                if (dist < 15) isNearAny = true;
-
-                // Si on est à moins de 5m, on valide l'œuf automatiquement !
-                if (dist <= z.radius) {
-                    foundEggs.push(z.id);
-                    await setDoc(doc(db, "users", auth.currentUser.uid), { 
-                        foundEggs: foundEggs,
-                        score: foundEggs.length 
-                    }, { merge: true });
-                    alert("Bravo ! Tu as trouvé un œuf ! 🎉");
-                }
-            }
-
-            document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
-            document.getElementById('no-detection-msg').classList.toggle('hidden', isNearAny);
-
-        }, (err) => console.error(err), { enableHighAccuracy: true });
-    }
-
-    // --- Reste du code (Leaderboard & UI) ---
+    // --- CLASSEMENT (DYNAMIQUE) ---
     function loadLeaderboard() {
-        const q = query(collection(db, "users"), orderBy("score", "desc"), limit(10));
+        const q = query(collection(db, "users"), orderBy("score", "desc"), limit(20));
         onSnapshot(q, (snap) => {
-            let html = '<table><tr><th>#</th><th>Joueur</th><th>Pts</th></tr>';
+            if (snap.empty) {
+                document.getElementById('leaderboard').innerHTML = "<p>Aucun joueur pour le moment.</p>";
+                return;
+            }
+            let html = '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
             let rank = 1;
             snap.forEach(doc => {
                 const d = doc.data();
-                html += `<tr><td>${rank==1?'🥇':rank}</td><td>${d.pseudo || 'Anonyme'}</td><td>${d.score || 0}</td></tr>`;
+                const pseudo = d.pseudo || "Anonyme";
+                const score = d.score || 0;
+                html += `<tr>
+                    <td>${rank == 1 ? '🥇' : rank == 2 ? '🥈' : rank == 3 ? '🥉' : rank}</td>
+                    <td><strong>${pseudo}</strong></td>
+                    <td>${score} / 7</td>
+                </tr>`;
                 rank++;
             });
             document.getElementById('leaderboard').innerHTML = html + '</table>';
         });
     }
 
-    // Auth simple pour le test
-    document.getElementById('login-btn').onclick = () => {
+    // --- AUTHENTIFICATION ---
+    document.getElementById('login-btn').onclick = async () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
-        signInWithEmailAndPassword(auth, email, pass);
+        if(!email || !pass) return alert("Remplis tous les champs !");
+        
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                // Création initiale du profil pour le classement
+                await setDoc(doc(db, "users", res.user.uid), {
+                    pseudo: email.split('@')[0],
+                    score: 0,
+                    foundEggs: []
+                });
+            } catch (err) { alert("Erreur : " + err.message); }
+        }
     };
 
-    onAuthStateChanged(auth, (user) => {
+    document.getElementById('logout').onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            onSnapshot(doc(db, "users", user.uid), (d) => {
+            
+            const userDocRef = doc(db, "users", user.uid);
+            
+            onSnapshot(userDocRef, (d) => {
                 if (d.exists()) {
                     foundEggs = d.data().foundEggs || [];
                     document.getElementById('found-count').innerText = foundEggs.length;
@@ -204,13 +196,54 @@ $<!DOCTYPE html>
             });
             startGPS();
             loadLeaderboard();
+        } else {
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
         }
     });
+
+    // --- MISE À JOUR PSEUDO ---
+    document.getElementById('display-name-input').onblur = async (e) => {
+        const newPseudo = e.target.value;
+        if(newPseudo) {
+            await setDoc(doc(db, "users", auth.currentUser.uid), { pseudo: newPseudo }, { merge: true });
+        }
+    };
+
+    // --- GPS ---
+    function startGPS() {
+        navigator.geolocation.watchPosition(async (pos) => {
+            const uLat = pos.coords.latitude;
+            const uLng = pos.coords.longitude;
+            let isNearAny = false;
+
+            for (const z of zones) {
+                if (foundEggs.includes(z.id)) continue;
+                const dist = getDist(uLat, uLng, z.lat, z.lng);
+
+                if (dist < 15) isNearAny = true;
+                if (dist <= z.radius) {
+                    if (!foundEggs.includes(z.id)) {
+                        foundEggs.push(z.id);
+                        await setDoc(doc(db, "users", auth.currentUser.uid), { 
+                            foundEggs: foundEggs,
+                            score: foundEggs.length 
+                        }, { merge: true });
+                        alert("🎉 BRAVO ! Tu as trouvé un œuf !");
+                    }
+                }
+            }
+            document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
+            document.getElementById('no-detection-msg').classList.toggle('hidden', isNearAny);
+        }, null, { enableHighAccuracy: true });
+    }
 
     function drawGrid() {
         const grid = document.getElementById('grid'); grid.innerHTML = '';
         const emojis = ['🥚', '🍫', '🐣', '🎁', '🐰', '🍯', '✨'];
-        for(let i=1; i<=7; i++) grid.innerHTML += `<div class="egg-slot"><span class="egg ${foundEggs.includes(i)?'found':''}">${emojis[i-1]}</span></div>`;
+        for(let i=1; i<=7; i++) {
+            grid.innerHTML += `<div class="egg-slot"><span class="egg ${foundEggs.includes(i)?'found':''}">${emojis[i-1]}</span></div>`;
+        }
     }
 
     function getDist(lat1, lon1, lat2, lon2) {
