@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Chasse Aux Œufs 2026 - Le FLAMBEAU🔥🔥</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
             --primary: #c2410c; --accent: #22c55e; --pink: #f9a8d4;
@@ -13,43 +14,17 @@
         body { 
             font-family: 'Inter', sans-serif; margin: 0; 
             background: linear-gradient(135deg, var(--light-pink), var(--light-green)); 
-            color: var(--text); min-height: 100vh;
+            color: var(--text); min-height: 100vh; padding-bottom: 100px;
         }
 
-        #main-container {
-            display: flex;
-            flex-wrap: wrap;
-            max-width: 1200px;
-            margin: auto;
-            padding: 20px;
-            gap: 20px;
-            justify-content: center;
-        }
-
+        #main-container { display: flex; flex-wrap: wrap; max-width: 1200px; margin: auto; padding: 20px; gap: 20px; justify-content: center; }
         .side-panel { flex: 1; min-width: 300px; max-width: 350px; }
         .game-panel { flex: 2; min-width: 350px; max-width: 600px; }
 
-        .card { 
-            background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 25px; 
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); border: 3px solid var(--pink); 
-            margin-bottom: 20px;
-        }
-
+        .card { background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); border: 3px solid var(--pink); margin-bottom: 20px; }
         h1, h3 { color: var(--primary); text-align: center; margin-top: 0; }
         
-        /* Style du nouveau message */
-        #stylized-text { 
-            font-family: 'Inter', sans-serif; 
-            color: #92400e; 
-            font-size: 0.95rem; 
-            text-align: center; 
-            line-height: 1.5;
-            background: #fffbeb;
-            padding: 15px;
-            border-radius: 15px;
-            border-left: 5px solid #f59e0b;
-            margin: 15px 0;
-        }
+        #stylized-text { font-family: 'Inter', sans-serif; color: #92400e; font-size: 0.95rem; text-align: center; line-height: 1.5; background: #fffbeb; padding: 15px; border-radius: 15px; border-left: 5px solid #f59e0b; margin: 15px 0; }
 
         .egg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; justify-items: center; }
         .egg-slot { width: 65px; height: 65px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
@@ -59,21 +34,17 @@
         .alert-card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #eee; text-align: center; font-style: italic; }
         #proximity-alert { background: #fef9c3; border-color: #facc15; color: #854d0e; font-style: normal; font-weight: bold; animation: pulse 1.5s infinite; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        #debug-panel { position: fixed; bottom: 0; left: 0; width: 100%; background: #333; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px; z-index: 1000; opacity: 0.9; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; padding-bottom: 10px; border-bottom: 2px solid #eee; font-size: 0.8rem; color: #666; }
         td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
 
         .hidden { display: none !important; }
-        input[type="text"] { border: none; background: transparent; font-weight: 600; color: var(--primary); border-bottom: 1px dashed var(--primary); width: 100px; text-align: center; }
-        input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
         button { cursor: pointer; transition: 0.3s; width: 100%; padding: 15px; background: var(--accent); border: none; color: white; border-radius: 15px; font-weight: bold; margin-top: 10px; }
-        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -82,47 +53,39 @@
     <div class="side-panel">
         <div class="card">
             <h3>📊 TOP Chasseurs</h3>
-            <div id="leaderboard">Chargement du classement...</div>
+            <div id="leaderboard">Chargement...</div>
         </div>
     </div>
 
     <div class="game-panel">
         <div id="auth-screen" class="card">
             <h2>Connexion</h2>
-            <p style="text-align:center; font-size:0.9rem;">Entre tes identifiants pour participer !</p>
-            <input type="email" id="email" placeholder="Email (ex: momo@ecole.ci)">
+            <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Mot de passe">
-            <button id="login-btn">SE CONNECTER / S'INSCRIRE</button>
+            <button id="login-btn">JOUER</button>
         </div>
 
         <div id="game-screen" class="hidden">
             <header class="card">
-                <h1>🏆 La Chasse Aux Œuf 🏆</h1>
-                <div id="stylized-text">
-                    📍 <strong>7 œufs</strong> sont cachés dans toute l'école, au nord, au centre et au sud. 
-                    <br><br>
-                    🕵️‍♂️ Aucun indice. Faites confiance à votre instinct... <strong>Bonne chance !</strong>
-                </div>
-                <div style="text-align:center; font-size: 0.85rem; background: #fff5f5; padding: 10px; border-radius: 15px;">
-                    Joueur : <input type="text" id="display-name-input" placeholder="Ton Pseudo"> | <span id="logout" style="color:red; cursor:pointer; font-weight:bold;">Quitter</span>
+                <h1>🏆 Le FLAMBEAU 🏆</h1>
+                <div id="stylized-text">📍 7 œufs cachés. Bonne chance !</div>
+                <div style="text-align:center; font-size: 0.8rem;">
+                    Pseudo : <input type="text" id="display-name-input" style="width:80px; border:none; border-bottom:1px solid"> | <span id="logout" style="color:red; cursor:pointer">Quitter</span>
                 </div>
             </header>
 
             <div class="card">
-                <p style="text-align:center; font-weight:bold; margin-bottom:15px;">Tes Œufs : <span id="found-count" style="color:var(--primary); font-size:1.2rem;">0</span> / 7</p>
+                <p style="text-align:center;">Score : <span id="found-count">0</span> / 7</p>
                 <div class="egg-grid" id="grid"></div>
             </div>
 
-            <div id="proximity-alert" class="alert-card hidden">
-                ✨ Oh ! Un œuf n'est plus très loin... Rapproche-toi ! 👀
-            </div>
-
-            <div id="no-detection-msg" class="alert-card">
-                Déplace-toi dans l'école pour détecter les œufs ! 🐇
-            </div>
+            <div id="proximity-alert" class="alert-card hidden">✨ Un œuf est tout proche !</div>
+            <div id="no-detection-msg" class="alert-card">Explore le campus... 🐇</div>
         </div>
     </div>
 </div>
+
+<div id="debug-panel">Initialisation GPS...</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -143,82 +106,50 @@
     const db = getFirestore(app);
 
     const zones = [
-        { id: 1, lat: 6.86782, lng: -5.23877, radius: 5 }, 
-        { id: 2, lat: 6.86928, lng: -5.23815, radius: 5 },
-        { id: 3, lat: 6.88961, lng: -5.22525, radius: 5 },
-        { id: 4, lat: 6.88139, lng: -5.22990, radius: 5 },
-        { id: 5, lat: 6.87895, lng: -5.22997, radius: 5 },
-        { id: 6, lat: 6.88101, lng: -5.23248, radius: 5 },
-        { id: 7, lat: 6.87314, lng: -5.23295, radius: 5 }
+        { id: 1, lat: 6.86782, lng: -5.23877, radius: 30 }, 
+        { id: 2, lat: 6.869165375221916, lng: -5.238664233046246, radius: 30 },
+        { id: 3, lat: 6.889560839458854, lng: -5.225277637751446, radius: 30 },
+        { id: 4, lat: 6.881345272136254, lng: -5.229899462750671, radius: 30 },
+        { id: 5, lat: 6.878918533629497, lng: -5.230129159799086, radius: 50 },
+        { id: 6, lat: 6.880884675023955, lng: -5.231981740717989, radius: 30 },
+        { id: 7, lat: 6.872646048210374, lng: -5.233116100112857, radius: 70 }
     ];
 
     let foundEggs = [];
 
-    // --- LEADERBOARD (SORTI DE L'AUTH POUR CHARGER DIRECTEMENT) ---
     function loadLeaderboard() {
-        const boardDiv = document.getElementById('leaderboard');
         onSnapshot(collection(db, "users"), (snap) => {
-            if (snap.empty) {
-                boardDiv.innerHTML = "<p>Aucun chasseur pour le moment.</p>";
-                return;
-            }
             let players = [];
-            snap.forEach(doc => {
-                const d = doc.data();
-                players.push({
-                    pseudo: d.pseudo || "Anonyme",
-                    score: d.score || 0
-                });
-            });
-
+            snap.forEach(doc => players.push(doc.data()));
             players.sort((a, b) => b.score - a.score);
-
-            let html = '<table><tr><th>#</th><th>Joueur</th><th>Score</th></tr>';
-            players.slice(0, 15).forEach((p, i) => {
-                let medal = (i === 0) ? '🥇' : (i === 1) ? '🥈' : (i === 2) ? '🥉' : (i + 1);
-                html += `<tr><td>${medal}</td><td><strong>${p.pseudo}</strong></td><td>${p.score}/7</td></tr>`;
+            let html = '<table>';
+            players.slice(0, 10).forEach((p, i) => {
+                html += `<tr><td>${i+1}</td><td>${p.pseudo}</td><td>${p.score}/7</td></tr>`;
             });
-            boardDiv.innerHTML = html + '</table>';
-        }, (error) => {
-            boardDiv.innerHTML = `<p style="color:red; font-size:0.7rem;">Erreur : ${error.message}</p>`;
+            document.getElementById('leaderboard').innerHTML = html + '</table>';
         });
     }
-
-    // Lancement immédiat du classement
     loadLeaderboard();
 
-    // --- AUTHENTIFICATION ---
     document.getElementById('login-btn').onclick = async () => {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('pass').value;
-        if(!email || !pass) return alert("Remplis tous les champs !");
-        
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (e) {
-            try {
-                const res = await createUserWithEmailAndPassword(auth, email, pass);
-                await setDoc(doc(db, "users", res.user.uid), {
-                    pseudo: email.split('@')[0],
-                    score: 0,
-                    foundEggs: []
-                }, { merge: true });
-            } catch (err) { alert("Erreur : " + err.message); }
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('pass').value;
+        try { await signInWithEmailAndPassword(auth, e, p); }
+        catch { 
+            const res = await createUserWithEmailAndPassword(auth, e, p);
+            await setDoc(doc(db, "users", res.user.uid), { pseudo: e.split('@')[0], score: 0, foundEggs: [] });
         }
     };
-
     document.getElementById('logout').onclick = () => signOut(auth);
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
-            
             onSnapshot(doc(db, "users", user.uid), (d) => {
-                if (d.exists()) {
+                if(d.exists()) {
                     foundEggs = d.data().foundEggs || [];
                     document.getElementById('found-count').innerText = foundEggs.length;
-                    document.getElementById('display-name-input').value = d.data().pseudo || "";
                     drawGrid();
                 }
             });
@@ -229,38 +160,42 @@
         }
     });
 
-    document.getElementById('display-name-input').onblur = async (e) => {
-        const newPseudo = e.target.value;
-        if(newPseudo && auth.currentUser) {
-            await setDoc(doc(db, "users", auth.currentUser.uid), { pseudo: newPseudo }, { merge: true });
-        }
-    };
-
     function startGPS() {
         navigator.geolocation.watchPosition(async (pos) => {
             const uLat = pos.coords.latitude;
             const uLng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy;
+            let debugHTML = `Précision GPS: ${accuracy.toFixed(1)}m<br>`;
             let isNearAny = false;
 
-            for (const z of zones) {
-                if (foundEggs.includes(z.id)) continue;
+            zones.forEach(z => {
                 const dist = getDist(uLat, uLng, z.lat, z.lng);
-
-                if (dist < 15) isNearAny = true;
-                if (dist <= z.radius) {
-                    if (!foundEggs.includes(z.id)) {
+                if (!foundEggs.includes(z.id)) {
+                    debugHTML += `Œuf ${z.id}: ${dist.toFixed(1)}m (cible: ${z.radius}m)<br>`;
+                    if (dist < (z.radius + 15)) isNearAny = true;
+                    if (dist <= z.radius) {
                         foundEggs.push(z.id);
-                        await setDoc(doc(db, "users", auth.currentUser.uid), { 
-                            foundEggs: foundEggs,
-                            score: foundEggs.length 
-                        }, { merge: true });
-                        alert("🎉 BRAVO ! Tu as trouvé un œuf !");
+                        const newScore = foundEggs.length;
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        setDoc(doc(db, "users", auth.currentUser.uid), { foundEggs: foundEggs, score: newScore }, { merge: true });
+                        
+                        setTimeout(() => {
+                            if (newScore === 7) {
+                                alert("🏆 INCROYABLE ! Tu as trouvé les 7 œufs !");
+                            } else {
+                                alert(`🎉 Œuf trouvé ! Plus que ${7 - newScore} à chercher.`);
+                            }
+                        }, 500);
                     }
                 }
-            }
+            });
+
+            document.getElementById('debug-panel').innerHTML = debugHTML;
             document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
             document.getElementById('no-detection-msg').classList.toggle('hidden', isNearAny);
-        }, null, { enableHighAccuracy: true });
+        }, (err) => {
+            document.getElementById('debug-panel').innerHTML = "Erreur GPS: " + err.message;
+        }, { enableHighAccuracy: true, maximumAge: 0 });
     }
 
     function drawGrid() {
