@@ -303,7 +303,11 @@
         <div id="game-header">
             <span class="game-title">🏆 Le FLAMBEAU 🔥</span>
             <div class="header-info">
-                <span>Bonjour, <strong id="pseudo-display">—</strong></span>
+                <span>Bonjour, <strong id="pseudo-display" title="Clique pour modifier" style="cursor:pointer; border-bottom: 1px dashed var(--orange);" onclick="document.getElementById('pseudo-edit-wrap').classList.toggle('hidden')">—</strong></span>
+                <div id="pseudo-edit-wrap" class="hidden" style="display:flex;gap:6px;align-items:center;">
+                    <input type="text" id="pseudo-input" placeholder="Nouveau pseudo" style="width:140px;margin:0;padding:8px 12px;font-size:0.85rem;"/>
+                    <button id="pseudo-save-btn" style="width:auto;padding:8px 14px;background:var(--orange);color:white;border-radius:10px;font-size:0.85rem;">✓</button>
+                </div>
                 <span class="score-badge"><span id="found-count">0</span>/7 🥚</span>
                 <button id="logout-btn">Quitter</button>
             </div>
@@ -364,12 +368,12 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, on
 import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBSA_eROf2jmyC0cQiJHbZcgJy41VFsiUE",
-    authDomain: "chassestresor.firebaseapp.com",
-    projectId: "chassestresor",
-    storageBucket: "chassestresor.firebasestorage.app",
-    messagingSenderId: "309602978398",
-    appId: "1:309602978398:web:872a6d81d635dd351f42cf"
+    apiKey: "AIzaSyCnTctJGot0MNNEeF4qRLBLzU8wUlkh9mQ",
+    authDomain: "chasses-aux-oeufs.firebaseapp.com",
+    projectId: "chasses-aux-oeufs",
+    storageBucket: "chasses-aux-oeufs.firebasestorage.app",
+    messagingSenderId: "85456204641",
+    appId: "1:85456204641:web:9126e1e05f929fe05b0b20"
 };
 
 const app  = initializeApp(firebaseConfig);
@@ -555,6 +559,23 @@ function setupReactionBtns() {
     });
 }
 
+// ── PSEUDO EDIT ───────────────────────────────────────
+function setupPseudoEdit() {
+    document.getElementById('pseudo-save-btn').onclick = async () => {
+        const val = document.getElementById('pseudo-input').value.trim();
+        if (!val || val.length < 2) return alert('Pseudo trop court (min 2 caractères)');
+        if (val.length > 20) return alert('Pseudo trop long (max 20 caractères)');
+        currentPseudo = val;
+        document.getElementById('pseudo-display').textContent = val;
+        document.getElementById('pseudo-edit-wrap').classList.add('hidden');
+        document.getElementById('pseudo-input').value = '';
+        await setDoc(doc(db, "users", currentUser.uid), { pseudo: val }, { merge: true });
+    };
+    document.getElementById('pseudo-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('pseudo-save-btn').click();
+    });
+}
+
 // ── AUTH ──────────────────────────────────────────────────
 document.getElementById('login-btn').onclick = async () => {
     const e = document.getElementById('email').value;
@@ -574,6 +595,7 @@ onAuthStateChanged(auth, (user) => {
         document.getElementById('game-screen').classList.remove('hidden');
         initMap();
         setupReactionBtns();
+        setupPseudoEdit();
         loadLeaderboard();
         loadReactions();
 
