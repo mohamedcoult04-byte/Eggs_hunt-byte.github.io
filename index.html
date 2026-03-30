@@ -319,6 +319,12 @@
             <div class="egg-grid" id="egg-grid"></div>
         </div>
 
+        <!-- ANNONCE ADMIN -->
+        <div id="admin-banner" class="hidden" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border-radius:14px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-weight:700;font-size:0.95rem;box-shadow:0 4px 20px rgba(124,58,237,0.3);animation:pulse 2s infinite;">
+            <span style="font-size:1.4rem">📢</span>
+            <span id="admin-banner-text"></span>
+        </div>
+
         <!-- PROXIMITY -->
         <div id="proximity-bar" class="cold">
             <span class="prox-dot"></span>
@@ -468,6 +474,11 @@ function startGPS() {
         updateProximityUI(closestDist);
         updateMapPlayer(uLat, uLng, closestDist);
 
+        // Sauvegarder la position pour la carte admin
+        if (currentUser) {
+            setDoc(doc(db, "users", currentUser.uid), { lat: uLat, lng: uLng }, { merge: true });
+        }
+
         for (const z of zones) {
             if (foundEggs.includes(z.id)) continue;
             const dist = getDist(uLat, uLng, z.lat, z.lng);
@@ -528,10 +539,17 @@ function loadReactions() {
         snap.forEach(d => {
             const r = d.data();
             const time = r.ts ? new Date(r.ts.seconds*1000).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '';
-            feed.innerHTML += `<div class="feed-item">
-                <span class="feed-time">${time}</span>
-                <span class="feed-pseudo">${r.pseudo}</span> ${r.reaction} ${r.text||''}
-            </div>`;
+            if (r.isAdmin) {
+                feed.innerHTML += `<div class="feed-item" style="background:#ede9fe;border-left:3px solid #7c3aed;">
+                    <span class="feed-time">${time}</span>
+                    <span style="color:#5b21b6;font-weight:800">📢 Admin</span> ${r.text||''}
+                </div>`;
+            } else {
+                feed.innerHTML += `<div class="feed-item">
+                    <span class="feed-time">${time}</span>
+                    <span class="feed-pseudo">${r.pseudo}</span> ${r.reaction} ${r.text||''}
+                </div>`;
+            }
         });
     });
 }
@@ -576,6 +594,24 @@ function setupPseudoEdit() {
     });
 }
 
+// ── ANNONCES ADMIN ───────────────────────────────────────
+function loadAnnouncements() {
+    const q = query(collection(db, "announcements"), orderBy("ts", "desc"), limit(1));
+    onSnapshot(q, (snap) => {
+        if (!snap.empty) {
+            const data = snap.docs[0].data();
+            const banner = document.getElementById("admin-banner");
+            const bannerText = document.getElementById("admin-banner-text");
+            if (data.text && data.active) {
+                bannerText.textContent = data.text;
+                banner.classList.remove("hidden");
+            } else {
+                banner.classList.add("hidden");
+            }
+        }
+    });
+}
+
 // ── AUTH ──────────────────────────────────────────────────
 document.getElementById('login-btn').onclick = async () => {
     const e = document.getElementById('email').value;
@@ -598,6 +634,7 @@ onAuthStateChanged(auth, (user) => {
         setupPseudoEdit();
         loadLeaderboard();
         loadReactions();
+        loadAnnouncements();
 
         onSnapshot(doc(db, "users", user.uid), (d) => {
             if (d.exists()) {
@@ -627,3 +664,4 @@ function getDist(lat1, lon1, lat2, lon2) {
 </script>
 </body>
 </html>
+
