@@ -205,6 +205,7 @@
         .warm .prox-dot { background: #f59e0b; }
         .hot  .prox-dot { background: #ef4444; }
         @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+        @keyframes bounce { from { transform: scale(1); box-shadow: 0 6px 30px rgba(34,197,94,0.5); } to { transform: scale(1.04); box-shadow: 0 10px 40px rgba(34,197,94,0.7); } }
 
         /* ─── MAP ─── */
         #map {
@@ -329,6 +330,27 @@
         <div id="proximity-bar" class="cold">
             <span class="prox-dot"></span>
             <span id="prox-text">Explore le campus pour trouver des œufs… 🐇</span>
+        </div>
+
+        <!-- BOUTON RAMASSAGE -->
+        <div id="pickup-wrap" class="hidden" style="margin-bottom:16px;text-align:center;">
+            <button id="pickup-btn" style="
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                border: none;
+                border-radius: 20px;
+                padding: 18px 40px;
+                font-family: 'Fredoka One', cursive;
+                font-size: 1.4rem;
+                cursor: pointer;
+                box-shadow: 0 6px 30px rgba(34,197,94,0.5);
+                animation: bounce 0.8s infinite alternate;
+                width: 100%;
+                max-width: 400px;
+                letter-spacing: 0.5px;
+            ">
+                🥚 Ramasser l'œuf !
+            </button>
         </div>
 
         <div id="layout">
@@ -479,26 +501,14 @@ function startGPS() {
             setDoc(doc(db, "users", currentUser.uid), { lat: uLat, lng: uLng }, { merge: true });
         }
 
+        // Détection de zone → afficher/cacher le bouton ramassage
+        let eggInRange = null;
         for (const z of zones) {
             if (foundEggs.includes(z.id)) continue;
             const dist = getDist(uLat, uLng, z.lat, z.lng);
-            if (dist <= z.radius) {
-                foundEggs.push(z.id);
-                const newScore = foundEggs.length;
-                confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-                await setDoc(doc(db, "users", currentUser.uid), { foundEggs, score: newScore }, { merge: true });
-                await addDoc(collection(db, "reactions"), {
-                    pseudo: currentPseudo,
-                    reaction: '🎉',
-                    text: `vient de trouver l'œuf ${emojis[z.id-1]} !`,
-                    ts: serverTimestamp()
-                });
-                setTimeout(() => {
-                    if (newScore === 7) alert("🏆 INCROYABLE ! Tu as trouvé les 7 œufs !");
-                    else alert(`🎉 Œuf ${z.id} trouvé ! Plus que ${7 - newScore} à chercher.`);
-                }, 500);
-            }
+            if (dist <= z.radius) { eggInRange = z; break; }
         }
+        updatePickupButton(eggInRange);
     }, null, { enableHighAccuracy: true, maximumAge: 0 });
 }
 
@@ -612,6 +622,49 @@ function loadAnnouncements() {
     });
 }
 
+// ── RAMASSAGE ─────────────────────────────────────────────
+let pendingEgg = null;
+
+function updatePickupButton(zone) {
+    const wrap = document.getElementById('pickup-wrap');
+    const btn  = document.getElementById('pickup-btn');
+    if (zone) {
+        pendingEgg = zone;
+        btn.textContent = `🥚 Ramasser l'œuf ${zone.id} !`;
+        wrap.classList.remove('hidden');
+    } else {
+        pendingEgg = null;
+        wrap.classList.add('hidden');
+    }
+}
+
+function setupPickupBtn() {
+    document.getElementById('pickup-btn').onclick = async () => {
+        if (!pendingEgg) return;
+        if (foundEggs.includes(pendingEgg.id)) return;
+
+        const z = pendingEgg;
+        foundEggs.push(z.id);
+        const newScore = foundEggs.length;
+        pendingEgg = null;
+        document.getElementById('pickup-wrap').classList.add('hidden');
+
+        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+        await setDoc(doc(db, "users", currentUser.uid), { foundEggs, score: newScore }, { merge: true });
+        await addDoc(collection(db, "reactions"), {
+            pseudo: currentPseudo,
+            reaction: '🎉',
+            text: `vient de ramasser l'œuf ${emojis[z.id-1]} !`,
+            ts: serverTimestamp()
+        });
+
+        setTimeout(() => {
+            if (newScore === 7) alert("🏆 INCROYABLE ! Tu as ramassé les 7 œufs !");
+            else alert(`🎉 Œuf ${z.id} ramassé ! Plus que ${7 - newScore} à trouver.`);
+        }, 500);
+    };
+}
+
 // ── AUTH ──────────────────────────────────────────────────
 document.getElementById('login-btn').onclick = async () => {
     const e = document.getElementById('email').value;
@@ -632,6 +685,7 @@ onAuthStateChanged(auth, (user) => {
         initMap();
         setupReactionBtns();
         setupPseudoEdit();
+        setupPickupBtn();
         loadLeaderboard();
         loadReactions();
         loadAnnouncements();
@@ -664,4 +718,5 @@ function getDist(lat1, lon1, lat2, lon2) {
 </script>
 </body>
 </html>
+
 
