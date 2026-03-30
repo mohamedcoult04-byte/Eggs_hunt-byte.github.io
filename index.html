@@ -3,208 +3,605 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Chasse Aux Œufs 2026 - Le FLAMBEAU🔥🔥</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
+    <title>La Chasse Aux Œufs 2026 - Le FLAMBEAU🔥</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { 
-            --primary: #c2410c; --accent: #22c55e; --pink: #f9a8d4;
-            --light-pink: #fdf2f8; --light-green: #f0fdf4; --text: #166534;
+        :root {
+            --orange: #f97316;
+            --orange-dark: #c2410c;
+            --green: #22c55e;
+            --green-dark: #16a34a;
+            --yellow: #fbbf24;
+            --pink: #fb7185;
+            --bg: #fff7ed;
+            --card: #ffffff;
+            --text: #1c1917;
+            --muted: #78716c;
+            --border: #fed7aa;
         }
-        body { 
-            font-family: 'Inter', sans-serif; margin: 0; 
-            background: linear-gradient(135deg, var(--light-pink), var(--light-green)); 
-            color: var(--text); min-height: 100vh;
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 20% 20%, #fde68a33 0%, transparent 50%),
+                              radial-gradient(circle at 80% 80%, #bbf7d033 0%, transparent 50%);
         }
 
-        #main-container { display: flex; flex-wrap: wrap; max-width: 1200px; margin: auto; padding: 20px; gap: 20px; justify-content: center; }
-        .side-panel { flex: 1; min-width: 300px; max-width: 350px; }
-        .game-panel { flex: 2; min-width: 350px; max-width: 600px; }
+        /* ─── LAYOUT ─── */
+        #app { max-width: 1100px; margin: 0 auto; padding: 16px; }
 
-        .card { background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); border: 3px solid var(--pink); margin-bottom: 20px; }
-        h1, h3 { color: var(--primary); text-align: center; margin-top: 0; }
-        
-        #stylized-text { font-family: 'Inter', sans-serif; color: #92400e; font-size: 0.95rem; text-align: center; line-height: 1.5; background: #fffbeb; padding: 15px; border-radius: 15px; border-left: 5px solid #f59e0b; margin: 15px 0; }
+        #layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+        @media(max-width: 768px) { #layout { grid-template-columns: 1fr; } }
 
-        .egg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; justify-items: center; }
-        .egg-slot { width: 65px; height: 65px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
-        .egg { opacity: 0.1; transition: 0.5s; }
-        .egg.found { opacity: 1; transform: scale(1.1); }
+        /* ─── CARDS ─── */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid var(--border);
+            box-shadow: 0 4px 20px rgba(249,115,22,0.08);
+        }
 
-        .alert-card { background: white; padding: 20px; border-radius: 20px; border: 2px solid #eee; text-align: center; font-style: italic; }
-        #proximity-alert { background: #fef9c3; border-color: #facc15; color: #854d0e; font-style: normal; font-weight: bold; animation: pulse 1.5s infinite; }
+        .card-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+            color: var(--orange-dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        /* ─── AUTH ─── */
+        #auth-screen {
+            max-width: 400px;
+            margin: 60px auto;
+            text-align: center;
+        }
+        #auth-screen h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.4rem;
+            color: var(--orange-dark);
+            margin-bottom: 6px;
+        }
+        #auth-screen p { color: var(--muted); margin-bottom: 24px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding-bottom: 10px; border-bottom: 2px solid #eee; font-size: 0.8rem; color: #666; }
-        td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+        input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fffbf7;
+        }
+        input:focus { border-color: var(--orange); }
+
+        button {
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--orange);
+            color: white;
+            border-radius: 14px;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary:hover { background: var(--orange-dark); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+
+        /* ─── HEADER ─── */
+        #game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .game-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            color: var(--orange-dark);
+        }
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .score-badge {
+            background: var(--orange);
+            color: white;
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+        #logout-btn {
+            background: none;
+            color: var(--muted);
+            font-size: 0.85rem;
+            text-decoration: underline;
+            padding: 0;
+        }
+        #logout-btn:hover { color: var(--pink); }
+
+        /* ─── EGG GRID ─── */
+        .egg-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        @media(max-width: 480px) { .egg-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        .egg-slot {
+            aspect-ratio: 1;
+            border-radius: 16px;
+            background: #fef3c7;
+            border: 2px solid #fde68a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .egg-slot .egg { opacity: 0.2; filter: grayscale(1); transition: all 0.4s; }
+        .egg-slot .egg.found {
+            opacity: 1;
+            filter: none;
+            transform: scale(1.15);
+        }
+        .egg-slot:has(.found) {
+            background: #d1fae5;
+            border-color: #6ee7b7;
+            box-shadow: 0 0 12px rgba(34,197,94,0.3);
+        }
+
+        /* ─── PROXIMITY ─── */
+        #proximity-bar {
+            border-radius: 14px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.4s;
+            margin-bottom: 16px;
+        }
+        #proximity-bar.cold { background: #dbeafe; color: #1e40af; border: 2px solid #93c5fd; }
+        #proximity-bar.warm { background: #fef9c3; color: #92400e; border: 2px solid #fde047; }
+        #proximity-bar.hot  { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+        .prox-dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            animation: blink 1.5s infinite;
+        }
+        .cold .prox-dot { background: #3b82f6; }
+        .warm .prox-dot { background: #f59e0b; }
+        .hot  .prox-dot { background: #ef4444; }
+        @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+        /* ─── MAP ─── */
+        #map {
+            height: 340px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* ─── LEADERBOARD ─── */
+        .lb-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0ebe5;
+            font-size: 0.9rem;
+        }
+        .lb-row:last-child { border-bottom: none; }
+        .lb-rank {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .rank-1 { background: #fef08a; color: #854d0e; }
+        .rank-2 { background: #e2e8f0; color: #475569; }
+        .rank-3 { background: #fed7aa; color: #9a3412; }
+        .rank-other { background: #f5f5f4; color: #78716c; }
+        .lb-name { flex: 1; font-weight: 700; color: var(--text); }
+        .lb-score {
+            font-weight: 800;
+            color: var(--orange-dark);
+        }
+
+        /* ─── REACTIONS ─── */
+        .reactions-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .reaction-btn {
+            padding: 8px 14px;
+            border-radius: 50px;
+            background: #fff7ed;
+            border: 2px solid var(--border);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .reaction-btn:hover { background: #fed7aa; border-color: var(--orange); }
+        .reaction-btn.mine { background: var(--orange); color: white; border-color: var(--orange-dark); }
+
+        .feed-wrap {
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .feed-item {
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            background: #fef9f0;
+            border-radius: 10px;
+            border-left: 3px solid var(--orange);
+            animation: fadeIn 0.3s ease;
+        }
+        .feed-item .feed-pseudo { font-weight: 800; color: var(--orange-dark); }
+        .feed-item .feed-time { color: var(--muted); font-size: 0.75rem; float: right; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
 
         .hidden { display: none !important; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; }
-        button { cursor: pointer; transition: 0.3s; width: 100%; padding: 15px; background: var(--accent); border: none; color: white; border-radius: 15px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
+<div id="app">
 
-<div id="main-container">
-    <div class="side-panel">
-        <div class="card">
-            <h3>📊 TOP Chasseurs</h3>
-            <div id="leaderboard">Chargement...</div>
-        </div>
+    <!-- AUTH -->
+    <div id="auth-screen" class="card">
+        <h1>🔥 Le FLAMBEAU</h1>
+        <p>Connecte-toi pour participer à la chasse aux œufs 2026 !</p>
+        <input type="email" id="email" placeholder="📧 Ton email"/>
+        <input type="password" id="pass" placeholder="🔒 Mot de passe"/>
+        <button class="btn-primary" id="login-btn">JOUER →</button>
     </div>
 
-    <div class="game-panel">
-        <div id="auth-screen" class="card">
-            <h2>Connexion</h2>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="pass" placeholder="Mot de passe">
-            <button id="login-btn">JOUER</button>
+    <!-- GAME -->
+    <div id="game-screen" class="hidden">
+        <div id="game-header">
+            <span class="game-title">🏆 Le FLAMBEAU 🔥</span>
+            <div class="header-info">
+                <span>Bonjour, <strong id="pseudo-display">—</strong></span>
+                <span class="score-badge"><span id="found-count">0</span>/7 🥚</span>
+                <button id="logout-btn">Quitter</button>
+            </div>
         </div>
 
-        <div id="game-screen" class="hidden">
-            <header class="card">
-                <h1>🏆 Le FLAMBEAU 🏆</h1>
-                <div id="stylized-text">📍 7 œufs cachés. Bonne chance !</div>
-                <div style="text-align:center; font-size: 0.8rem;">
-                    Pseudo : <input type="text" id="display-name-input" style="width:80px; border:none; border-bottom:1px solid"> | <span id="logout" style="color:red; cursor:pointer">Quitter</span>
-                </div>
-            </header>
+        <!-- ŒUFS -->
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-title">🎯 Tes œufs trouvés</div>
+            <div class="egg-grid" id="egg-grid"></div>
+        </div>
 
-            <div class="card">
-                <p style="text-align:center;">Score : <span id="found-count">0</span> / 7</p>
-                <div class="egg-grid" id="grid"></div>
+        <!-- PROXIMITY -->
+        <div id="proximity-bar" class="cold">
+            <span class="prox-dot"></span>
+            <span id="prox-text">Explore le campus pour trouver des œufs… 🐇</span>
+        </div>
+
+        <div id="layout">
+            <!-- LEFT COLUMN -->
+            <div>
+                <!-- LEADERBOARD -->
+                <div class="card" style="margin-bottom:16px;">
+                    <div class="card-title">📊 Top Chasseurs</div>
+                    <div id="leaderboard">Chargement…</div>
+                </div>
+
+                <!-- REACTIONS -->
+                <div class="card">
+                    <div class="card-title">💬 Réactions</div>
+                    <div class="reactions-wrap" id="reaction-btns">
+                        <button class="reaction-btn" data-r="🔥">🔥 Je suis chaud !</button>
+                        <button class="reaction-btn" data-r="😭">😭 Je cherche encore</button>
+                        <button class="reaction-btn" data-r="🎉">🎉 J'en ai trouvé un !</button>
+                        <button class="reaction-btn" data-r="🤔">🤔 Je suis perdu</button>
+                        <button class="reaction-btn" data-r="🏃">🏃 En route !</button>
+                    </div>
+                    <div class="feed-wrap" id="reaction-feed"></div>
+                </div>
             </div>
 
-            <div id="proximity-alert" class="alert-card hidden">✨ Un œuf est tout proche !</div>
-            <div id="no-detection-msg" class="alert-card">Explore le campus... 🐇</div>
+            <!-- RIGHT COLUMN -->
+            <div>
+                <div class="card">
+                    <div class="card-title">🗺️ Carte de chasse</div>
+                    <div id="map"></div>
+                    <p style="font-size:0.78rem;color:var(--muted);margin-top:10px;text-align:center;">
+                        🔵 Loin &nbsp;|&nbsp; 🟡 Proche &nbsp;|&nbsp; 🔴 Très proche — Les œufs ne sont pas affichés !
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBSA_eROf2jmyC0cQiJHbZcgJy41VFsiUE",
-        authDomain: "chassestresor.firebaseapp.com",
-        projectId: "chassestresor",
-        storageBucket: "chassestresor.firebasestorage.app",
-        messagingSenderId: "309602978398",
-        appId: "1:309602978398:web:872a6d81d635dd351f42cf"
-    };
+const firebaseConfig = {
+    apiKey: "AIzaSyBSA_eROf2jmyC0cQiJHbZcgJy41VFsiUE",
+    authDomain: "chassestresor.firebaseapp.com",
+    projectId: "chassestresor",
+    storageBucket: "chassestresor.firebasestorage.app",
+    messagingSenderId: "309602978398",
+    appId: "1:309602978398:web:872a6d81d635dd351f42cf"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-    const zones = [
-        { id: 1, lat: 6.86782, lng: -5.23877, radius: 30 }, 
-        { id: 2, lat: 6.869165375221916, lng: -5.238664233046246, radius: 30 },
-        { id: 3, lat: 6.889560839458854, lng: -5.225277637751446, radius: 30 },
-        { id: 4, lat: 6.881345272136254, lng: -5.229899462750671, radius: 30 },
-        { id: 5, lat: 6.878918533629497, lng: -5.230129159799086, radius: 50 },
-        { id: 6, lat: 6.880884675023955, lng: -5.231981740717989, radius: 30 },
-        { id: 7, lat: 6.872646048210374, lng: -5.233116100112857, radius: 70 }
-    ];
+const zones = [
+    { id:1, lat:6.86782,              lng:-5.23877,             radius:30 },
+    { id:2, lat:6.869165375221916,    lng:-5.238664233046246,   radius:30 },
+    { id:3, lat:6.889560839458854,    lng:-5.225277637751446,   radius:30 },
+    { id:4, lat:6.881345272136254,    lng:-5.229899462750671,   radius:30 },
+    { id:5, lat:6.878918533629497,    lng:-5.230129159799086,   radius:50 },
+    { id:6, lat:6.880884675023955,    lng:-5.231981740717989,   radius:30 },
+    { id:7, lat:6.872646048210374,    lng:-5.233116100112857,   radius:70 }
+];
+const emojis = ['🥚','🍫','🐣','🎁','🐰','🍯','✨'];
 
-    let foundEggs = [];
+let foundEggs = [];
+let currentUser = null;
+let currentPseudo = '';
+let map, playerMarker, playerCircle;
 
-    function loadLeaderboard() {
-        onSnapshot(collection(db, "users"), (snap) => {
-            let players = [];
-            snap.forEach(doc => players.push(doc.data()));
-            players.sort((a, b) => b.score - a.score);
-            let html = '<table>';
-            players.slice(0, 10).forEach((p, i) => {
-                html += `<tr><td>${i+1}</td><td>${p.pseudo}</td><td>${p.score}/7</td></tr>`;
-            });
-            document.getElementById('leaderboard').innerHTML = html + '</table>';
-        });
-    }
-    loadLeaderboard();
+// ── MAP INIT ──────────────────────────────────────────────
+function initMap() {
+    map = L.map('map').setView([6.878, -5.232], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+}
 
-    document.getElementById('login-btn').onclick = async () => {
-        const e = document.getElementById('email').value;
-        const p = document.getElementById('pass').value;
-        try { await signInWithEmailAndPassword(auth, e, p); }
-        catch { 
-            const res = await createUserWithEmailAndPassword(auth, e, p);
-            await setDoc(doc(db, "users", res.user.uid), { pseudo: e.split('@')[0], score: 0, foundEggs: [] });
-        }
-    };
-    document.getElementById('logout').onclick = () => signOut(auth);
+function updateMapPlayer(lat, lng, closestDist) {
+    const color = closestDist < 50 ? '#ef4444' : closestDist < 150 ? '#f59e0b' : '#3b82f6';
+    const radius = closestDist < 50 ? 50 : closestDist < 150 ? 120 : 250;
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            onSnapshot(doc(db, "users", user.uid), (d) => {
-                if(d.exists()) {
-                    foundEggs = d.data().foundEggs || [];
-                    document.getElementById('found-count').innerText = foundEggs.length;
-                    drawGrid();
-                }
-            });
-            startGPS();
-        } else {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('game-screen').classList.add('hidden');
+    if (playerCircle) { playerCircle.remove(); }
+    playerCircle = L.circle([lat, lng], {
+        radius,
+        color,
+        fillColor: color,
+        fillOpacity: 0.15,
+        weight: 2
+    }).addTo(map);
+
+    const iconHtml = `<div style="background:${color};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>`;
+    const icon = L.divIcon({ html: iconHtml, className: '', iconAnchor: [9,9] });
+
+    if (playerMarker) { playerMarker.setLatLng([lat, lng]).setIcon(icon); }
+    else { playerMarker = L.marker([lat, lng], { icon }).addTo(map); }
+
+    map.setView([lat, lng], Math.max(map.getZoom(), 15));
+}
+
+// ── PROXIMITY ─────────────────────────────────────────────
+function getClosestDist(uLat, uLng) {
+    let min = Infinity;
+    zones.forEach(z => {
+        if (!foundEggs.includes(z.id)) {
+            const d = getDist(uLat, uLng, z.lat, z.lng);
+            if (d < min) min = d;
         }
     });
+    return min;
+}
 
-    function startGPS() {
-        navigator.geolocation.watchPosition(async (pos) => {
-            const uLat = pos.coords.latitude;
-            const uLng = pos.coords.longitude;
-            let isNearAny = false;
+function updateProximityUI(dist) {
+    const bar  = document.getElementById('proximity-bar');
+    const text = document.getElementById('prox-text');
+    bar.className = '';
 
-            zones.forEach(z => {
-                const dist = getDist(uLat, uLng, z.lat, z.lng);
-                if (!foundEggs.includes(z.id)) {
-                    // On garde le message "Un œuf est proche" si on est à moins de 15m de la zone
-                    if (dist < (z.radius + 15)) isNearAny = true;
-                    
-                    if (dist <= z.radius) {
-                        foundEggs.push(z.id);
-                        const newScore = foundEggs.length;
-                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                        setDoc(doc(db, "users", auth.currentUser.uid), { foundEggs: foundEggs, score: newScore }, { merge: true });
-                        
-                        setTimeout(() => {
-                            if (newScore === 7) {
-                                alert("🏆 INCROYABLE ! Tu as trouvé les 7 œufs !");
-                            } else {
-                                alert(`🎉 Œuf trouvé ! Plus que ${7 - newScore} à chercher.`);
-                            }
-                        }, 500);
-                    }
-                }
-            });
-
-            document.getElementById('proximity-alert').classList.toggle('hidden', !isNearAny);
-            document.getElementById('no-detection-msg').classList.toggle('hidden', isNearAny);
-        }, null, { enableHighAccuracy: true, maximumAge: 0 });
+    if (dist === Infinity) {
+        bar.classList.add('cold');
+        text.textContent = 'Tous les œufs sont trouvés ! 🎉';
+    } else if (dist > 200) {
+        bar.classList.add('cold');
+        text.textContent = `🔵 Continue d'explorer… tu es loin. (${Math.round(dist)}m)`;
+    } else if (dist > 60) {
+        bar.classList.add('warm');
+        text.textContent = `🟡 Tu chauffes ! Un œuf n'est pas loin. (~${Math.round(dist)}m)`;
+    } else {
+        bar.classList.add('hot');
+        text.textContent = `🔴 BRÛLANT ! L'œuf est tout proche ! (<${Math.round(dist)}m)`;
     }
+}
 
-    function drawGrid() {
-        const grid = document.getElementById('grid'); grid.innerHTML = '';
-        const emojis = ['🥚', '🍫', '🐣', '🎁', '🐰', '🍯', '✨'];
-        for(let i=1; i<=7; i++) {
-            grid.innerHTML += `<div class="egg-slot"><span class="egg ${foundEggs.includes(i)?'found':''}">${emojis[i-1]}</span></div>`;
+// ── GPS ───────────────────────────────────────────────────
+function startGPS() {
+    navigator.geolocation.watchPosition(async (pos) => {
+        const uLat = pos.coords.latitude;
+        const uLng = pos.coords.longitude;
+        const closestDist = getClosestDist(uLat, uLng);
+
+        updateProximityUI(closestDist);
+        updateMapPlayer(uLat, uLng, closestDist);
+
+        for (const z of zones) {
+            if (foundEggs.includes(z.id)) continue;
+            const dist = getDist(uLat, uLng, z.lat, z.lng);
+            if (dist <= z.radius) {
+                foundEggs.push(z.id);
+                const newScore = foundEggs.length;
+                confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+                await setDoc(doc(db, "users", currentUser.uid), { foundEggs, score: newScore }, { merge: true });
+                await addDoc(collection(db, "reactions"), {
+                    pseudo: currentPseudo,
+                    reaction: '🎉',
+                    text: `vient de trouver l'œuf ${emojis[z.id-1]} !`,
+                    ts: serverTimestamp()
+                });
+                setTimeout(() => {
+                    if (newScore === 7) alert("🏆 INCROYABLE ! Tu as trouvé les 7 œufs !");
+                    else alert(`🎉 Œuf ${z.id} trouvé ! Plus que ${7 - newScore} à chercher.`);
+                }, 500);
+            }
         }
-    }
+    }, null, { enableHighAccuracy: true, maximumAge: 0 });
+}
 
-    function getDist(lat1, lon1, lat2, lon2) {
-        const R = 6371e3;
-        const dLat = (lat2-lat1)*Math.PI/180;
-        const dLon = (lon2-lon1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+// ── EGG GRID ──────────────────────────────────────────────
+function drawGrid() {
+    const grid = document.getElementById('egg-grid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= 7; i++) {
+        grid.innerHTML += `<div class="egg-slot"><span class="egg ${foundEggs.includes(i)?'found':''}">${emojis[i-1]}</span></div>`;
     }
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────
+function loadLeaderboard() {
+    onSnapshot(collection(db, "users"), (snap) => {
+        let players = [];
+        snap.forEach(d => players.push(d.data()));
+        players.sort((a, b) => b.score - a.score);
+        const medals = ['🥇','🥈','🥉'];
+        let html = '';
+        players.slice(0, 8).forEach((p, i) => {
+            html += `<div class="lb-row">
+                <div class="lb-rank ${i<3?'rank-'+(i+1):'rank-other'}">${medals[i]||i+1}</div>
+                <span class="lb-name">${p.pseudo}</span>
+                <span class="lb-score">${p.score}/7</span>
+            </div>`;
+        });
+        document.getElementById('leaderboard').innerHTML = html || '<p style="color:var(--muted);font-size:0.85rem">Aucun joueur encore.</p>';
+    });
+}
+
+// ── REACTIONS ─────────────────────────────────────────────
+function loadReactions() {
+    const q = query(collection(db, "reactions"), orderBy("ts", "desc"), limit(20));
+    onSnapshot(q, (snap) => {
+        const feed = document.getElementById('reaction-feed');
+        feed.innerHTML = '';
+        snap.forEach(d => {
+            const r = d.data();
+            const time = r.ts ? new Date(r.ts.seconds*1000).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '';
+            feed.innerHTML += `<div class="feed-item">
+                <span class="feed-time">${time}</span>
+                <span class="feed-pseudo">${r.pseudo}</span> ${r.reaction} ${r.text||''}
+            </div>`;
+        });
+    });
+}
+
+function setupReactionBtns() {
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.onclick = async () => {
+            const r = btn.dataset.r;
+            const texts = {
+                '🔥': 'est en mode chasseur !',
+                '😭': 'cherche encore…',
+                '🎉': 'a trouvé un œuf !',
+                '🤔': 'est complètement perdu 😅',
+                '🏃': 'est en route !'
+            };
+            document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('mine'));
+            btn.classList.add('mine');
+            await addDoc(collection(db, "reactions"), {
+                pseudo: currentPseudo,
+                reaction: r,
+                text: texts[r] || '',
+                ts: serverTimestamp()
+            });
+        };
+    });
+}
+
+// ── AUTH ──────────────────────────────────────────────────
+document.getElementById('login-btn').onclick = async () => {
+    const e = document.getElementById('email').value;
+    const p = document.getElementById('pass').value;
+    try { await signInWithEmailAndPassword(auth, e, p); }
+    catch {
+        const res = await createUserWithEmailAndPassword(auth, e, p);
+        await setDoc(doc(db, "users", res.user.uid), { pseudo: e.split('@')[0], score: 0, foundEggs: [] });
+    }
+};
+document.getElementById('logout-btn').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        initMap();
+        setupReactionBtns();
+        loadLeaderboard();
+        loadReactions();
+
+        onSnapshot(doc(db, "users", user.uid), (d) => {
+            if (d.exists()) {
+                foundEggs = d.data().foundEggs || [];
+                currentPseudo = d.data().pseudo || user.email.split('@')[0];
+                document.getElementById('pseudo-display').textContent = currentPseudo;
+                document.getElementById('found-count').textContent = foundEggs.length;
+                drawGrid();
+            }
+        });
+        startGPS();
+    } else {
+        currentUser = null;
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+    }
+});
+
+// ── UTILS ─────────────────────────────────────────────────
+function getDist(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 </script>
 </body>
 </html>
