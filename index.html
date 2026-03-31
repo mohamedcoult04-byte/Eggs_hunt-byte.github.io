@@ -540,16 +540,16 @@ function loadLeaderboard() {
         let players = [];
         snap.forEach(d => {
             const p = d.data();
-            // Exclure les comptes sans pseudo valide (anonymes, vides)
-            if (p.pseudo && p.pseudo.trim().length > 0) {
-                players.push({
-                    pseudo: p.pseudo.trim(),
-                    score: typeof p.score === 'number' ? p.score : 0,
-                    foundEggs: Array.isArray(p.foundEggs) ? p.foundEggs : []
-                });
-            }
+            if (!p.pseudo || p.pseudo.trim().length === 0) return;
+            // Score TOUJOURS recalculé depuis foundEggs — jamais depuis p.score
+            const eggs = Array.isArray(p.foundEggs) ? p.foundEggs : [];
+            const realScore = eggs.length;
+            players.push({
+                pseudo: p.pseudo.trim(),
+                score: realScore
+            });
         });
-        // Tri stable : score décroissant, puis pseudo alphabétique pour départager
+        // Tri stable : score décroissant, puis pseudo alphabétique
         players.sort((a, b) => b.score - a.score || a.pseudo.localeCompare(b.pseudo, 'fr'));
         const medals = ['🥇','🥈','🥉'];
         let html = '';
@@ -681,6 +681,8 @@ function setupPickupBtn() {
         document.getElementById('pickup-wrap').classList.add('hidden');
 
         confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+        // Sauvegarder immédiatement en local ET Firestore
+        localStorage.setItem('eggs_' + currentUser.uid, JSON.stringify(foundEggs));
         await setDoc(doc(db, "users", currentUser.uid), { foundEggs, score: newScore }, { merge: true });
         await addDoc(collection(db, "reactions"), {
             pseudo: currentPseudo,
@@ -713,6 +715,27 @@ onAuthStateChanged(auth, (user) => {
         currentUser = user;
         document.getElementById('auth-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
+
+        // ── RESTAURATION INSTANTANÉE depuis localStorage ──
+        // Charger immédiatement avant que Firestore réponde
+        const savedEggs = localStorage.getItem('eggs_' + user.uid);
+        if (savedEggs) {
+            try {
+                const parsed = JSON.parse(savedEggs);
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(id => { if (!foundEggs.includes(id)) foundEggs.push(id); });
+                }
+            } catch(e) {}
+        }
+        const savedPseudo = localStorage.getItem('pseudo_' + user.uid);
+        if (savedPseudo) {
+            currentPseudo = savedPseudo;
+            document.getElementById('pseudo-display').textContent = savedPseudo;
+        }
+        document.getElementById('found-count').textContent = foundEggs.length;
+        document.getElementById('total-eggs').textContent = TOTAL_EGGS;
+        drawGrid();
+
         initMap();
         setupReactionBtns();
         setupPseudoEdit();
@@ -721,19 +744,39 @@ onAuthStateChanged(auth, (user) => {
         loadReactions();
         loadAnnouncements();
 
+        // ── SYNCHRONISATION Firestore (source de vérité) ──
         onSnapshot(doc(db, "users", user.uid), (d) => {
             if (d.exists()) {
                 const data = d.data();
-                // Fusionner les œufs Firestore avec ceux en mémoire (jamais réduire)
+
+                // Fusionner Firestore + localStorage (on ne retire jamais un œuf)
                 const remote = data.foundEggs || [];
-                remote.forEach(id => { if (!foundEggs.includes(id)) foundEggs.push(id); });
-                currentPseudo = data.pseudo || localStorage.getItem('pseudo_' + user.uid) || user.email.split('@')[0];
-                // Sauvegarder en local pour survie au refresh
+                let changed = false;
+                remote.forEach(id => {
+                    if (!foundEggs.includes(id)) { foundEggs.push(id); changed = true; }
+                });
+
+                // Pseudo : Firestore prioritaire
+                const pseudo = data.pseudo || currentPseudo || user.email.split('@')[0];
+                currentPseudo = pseudo;
+
+                // Sauvegarder dans localStorage pour le prochain refresh
+                localStorage.setItem('eggs_' + user.uid, JSON.stringify(foundEggs));
                 localStorage.setItem('pseudo_' + user.uid, currentPseudo);
+
                 document.getElementById('pseudo-display').textContent = currentPseudo;
                 document.getElementById('found-count').textContent = foundEggs.length;
                 document.getElementById('total-eggs').textContent = TOTAL_EGGS;
                 drawGrid();
+
+                // Si Firestore avait moins d'œufs qu'en local → resynchroniser Firestore
+                if (foundEggs.length > remote.length) {
+                    setDoc(doc(db, "users", user.uid), {
+                        foundEggs: foundEggs,
+                        score: foundEggs.length,
+                        pseudo: currentPseudo
+                    }, { merge: true });
+                }
             }
         });
         startGPS();
