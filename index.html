@@ -8,361 +8,118 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --orange: #f97316;
-            --orange-dark: #c2410c;
-            --green: #22c55e;
-            --green-dark: #16a34a;
-            --yellow: #fbbf24;
-            --pink: #fb7185;
-            --bg: #fff7ed;
-            --card: #ffffff;
-            --text: #1c1917;
-            --muted: #78716c;
-            --border: #fed7aa;
+            --orange:#f97316;--orange-dark:#c2410c;--green:#22c55e;
+            --pink:#fb7185;--bg:#fff7ed;--card:#ffffff;--text:#1c1917;
+            --muted:#78716c;--border:#fed7aa;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Nunito', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 20% 20%, #fde68a33 0%, transparent 50%),
-                              radial-gradient(circle at 80% 80%, #bbf7d033 0%, transparent 50%);
-        }
-
-        /* ─── LAYOUT ─── */
-        #app { max-width: 1100px; margin: 0 auto; padding: 16px; }
-
-        #layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
-        @media(max-width: 768px) { #layout { grid-template-columns: 1fr; } }
-
-        /* ─── CARDS ─── */
-        .card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 20px;
-            border: 2px solid var(--border);
-            box-shadow: 0 4px 20px rgba(249,115,22,0.08);
-        }
-
-        .card-title {
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.1rem;
-            color: var(--orange-dark);
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* ─── AUTH ─── */
-        #auth-screen {
-            max-width: 400px;
-            margin: 60px auto;
-            text-align: center;
-        }
-        #auth-screen h1 {
-            font-family: 'Fredoka One', cursive;
-            font-size: 2.4rem;
-            color: var(--orange-dark);
-            margin-bottom: 6px;
-        }
-        #auth-screen p { color: var(--muted); margin-bottom: 24px; }
-
-        input {
-            width: 100%;
-            padding: 13px 16px;
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            font-family: 'Nunito', sans-serif;
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-            outline: none;
-            transition: border-color 0.2s;
-            background: #fffbf7;
-        }
-        input:focus { border-color: var(--orange); }
-
-        button {
-            cursor: pointer;
-            font-family: 'Nunito', sans-serif;
-            font-weight: 800;
-            font-size: 1rem;
-            transition: all 0.2s;
-            border: none;
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: var(--orange);
-            color: white;
-            border-radius: 14px;
-            margin-top: 4px;
-            letter-spacing: 0.5px;
-        }
-        .btn-primary:hover { background: var(--orange-dark); transform: translateY(-1px); }
-        .btn-primary:active { transform: translateY(0); }
-
-        /* ─── HEADER ─── */
-        #game-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .game-title {
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.8rem;
-            color: var(--orange-dark);
-        }
-        .header-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            color: var(--muted);
-        }
-        .score-badge {
-            background: var(--orange);
-            color: white;
-            font-weight: 800;
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 1rem;
-        }
-        #logout-btn {
-            background: none;
-            color: var(--muted);
-            font-size: 0.85rem;
-            text-decoration: underline;
-            padding: 0;
-        }
-        #logout-btn:hover { color: var(--pink); }
-
-        /* ─── EGG GRID ─── */
-        .egg-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-        @media(max-width: 480px) { .egg-grid { grid-template-columns: repeat(4, 1fr); } }
-
-        .egg-slot {
-            aspect-ratio: 1;
-            border-radius: 16px;
-            background: #fef3c7;
-            border: 2px solid #fde68a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .egg-slot .egg { opacity: 0.2; filter: grayscale(1); transition: all 0.4s; }
-        .egg-slot .egg.found {
-            opacity: 1;
-            filter: none;
-            transform: scale(1.15);
-        }
-        .egg-slot:has(.found) {
-            background: #d1fae5;
-            border-color: #6ee7b7;
-            box-shadow: 0 0 12px rgba(34,197,94,0.3);
-        }
-
-        /* ─── PROXIMITY ─── */
-        #proximity-bar {
-            border-radius: 14px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            transition: all 0.4s;
-            margin-bottom: 16px;
-        }
-        #proximity-bar.cold { background: #dbeafe; color: #1e40af; border: 2px solid #93c5fd; }
-        #proximity-bar.warm { background: #fef9c3; color: #92400e; border: 2px solid #fde047; }
-        #proximity-bar.hot  { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; animation: pulse 1s infinite; }
-
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-
-        .prox-dot {
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            animation: blink 1.5s infinite;
-        }
-        .cold .prox-dot { background: #3b82f6; }
-        .warm .prox-dot { background: #f59e0b; }
-        .hot  .prox-dot { background: #ef4444; }
-        @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-        @keyframes bounce { from { transform: scale(1); box-shadow: 0 6px 30px rgba(34,197,94,0.5); } to { transform: scale(1.04); box-shadow: 0 10px 40px rgba(34,197,94,0.7); } }
-
-        /* ─── MAP ─── */
-        #map {
-            height: 340px;
-            border-radius: 16px;
-            border: 2px solid var(--border);
-            overflow: hidden;
-        }
-
-        /* ─── LEADERBOARD ─── */
-        .lb-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #f0ebe5;
-            font-size: 0.9rem;
-        }
-        .lb-row:last-child { border-bottom: none; }
-        .lb-rank {
-            width: 26px; height: 26px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800;
-            font-size: 0.8rem;
-            flex-shrink: 0;
-        }
-        .rank-1 { background: #fef08a; color: #854d0e; }
-        .rank-2 { background: #e2e8f0; color: #475569; }
-        .rank-3 { background: #fed7aa; color: #9a3412; }
-        .rank-other { background: #f5f5f4; color: #78716c; }
-        .lb-name { flex: 1; font-weight: 700; color: var(--text); }
-        .lb-score {
-            font-weight: 800;
-            color: var(--orange-dark);
-        }
-
-        /* ─── REACTIONS ─── */
-        .reactions-wrap {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-        .reaction-btn {
-            padding: 8px 14px;
-            border-radius: 50px;
-            background: #fff7ed;
-            border: 2px solid var(--border);
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .reaction-btn:hover { background: #fed7aa; border-color: var(--orange); }
-        .reaction-btn.mine { background: var(--orange); color: white; border-color: var(--orange-dark); }
-
-        .feed-wrap {
-            max-height: 200px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .feed-item {
-            font-size: 0.85rem;
-            padding: 8px 12px;
-            background: #fef9f0;
-            border-radius: 10px;
-            border-left: 3px solid var(--orange);
-            animation: fadeIn 0.3s ease;
-        }
-        .feed-item .feed-pseudo { font-weight: 800; color: var(--orange-dark); }
-        .feed-item .feed-time { color: var(--muted); font-size: 0.75rem; float: right; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
-
-        .hidden { display: none !important; }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+            background-image:radial-gradient(circle at 20% 20%,#fde68a33 0%,transparent 50%),radial-gradient(circle at 80% 80%,#bbf7d033 0%,transparent 50%);}
+        #app{max-width:1100px;margin:0 auto;padding:16px;}
+        #layout{display:grid;grid-template-columns:320px 1fr;gap:16px;}
+        @media(max-width:768px){#layout{grid-template-columns:1fr;}}
+        .card{background:var(--card);border-radius:20px;padding:20px;border:2px solid var(--border);box-shadow:0 4px 20px rgba(249,115,22,0.08);}
+        .card-title{font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--orange-dark);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+        #auth-screen{max-width:400px;margin:60px auto;text-align:center;}
+        #auth-screen h1{font-family:'Fredoka One',cursive;font-size:2.4rem;color:var(--orange-dark);margin-bottom:6px;}
+        #auth-screen p{color:var(--muted);margin-bottom:24px;}
+        input{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:14px;font-family:'Nunito',sans-serif;font-size:0.95rem;margin-bottom:10px;outline:none;transition:border-color 0.2s;background:#fffbf7;}
+        input:focus{border-color:var(--orange);}
+        button{cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;transition:all 0.2s;border:none;}
+        .btn-primary{width:100%;padding:14px;background:var(--orange);color:white;border-radius:14px;margin-top:4px;}
+        .btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px);}
+        #game-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+        .game-title{font-family:'Fredoka One',cursive;font-size:1.8rem;color:var(--orange-dark);}
+        .header-info{display:flex;align-items:center;gap:12px;font-size:0.9rem;color:var(--muted);}
+        .score-badge{background:var(--orange);color:white;font-weight:800;padding:6px 16px;border-radius:50px;font-size:1rem;}
+        #logout-btn{background:none;color:var(--muted);font-size:0.85rem;text-decoration:underline;padding:0;}
+        .egg-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+        @media(max-width:480px){.egg-grid{grid-template-columns:repeat(4,1fr);}}
+        .egg-slot{aspect-ratio:1;border-radius:16px;background:#fef3c7;border:2px solid #fde68a;display:flex;align-items:center;justify-content:center;font-size:1.8rem;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+        .egg-slot .egg{opacity:0.2;filter:grayscale(1);transition:all 0.4s;}
+        .egg-slot .egg.found{opacity:1;filter:none;transform:scale(1.15);}
+        .egg-slot:has(.found){background:#d1fae5;border-color:#6ee7b7;box-shadow:0 0 12px rgba(34,197,94,0.3);}
+        #proximity-bar{border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:0.95rem;transition:all 0.4s;margin-bottom:16px;}
+        #proximity-bar.cold{background:#dbeafe;color:#1e40af;border:2px solid #93c5fd;}
+        #proximity-bar.warm{background:#fef9c3;color:#92400e;border:2px solid #fde047;}
+        #proximity-bar.hot{background:#fee2e2;color:#991b1b;border:2px solid #fca5a5;animation:pulse 1s infinite;}
+        @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.02);}}
+        .prox-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;animation:blink 1.5s infinite;}
+        .cold .prox-dot{background:#3b82f6;}.warm .prox-dot{background:#f59e0b;}.hot .prox-dot{background:#ef4444;}
+        @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+        @keyframes bounce{from{transform:scale(1);box-shadow:0 6px 30px rgba(34,197,94,0.5);}to{transform:scale(1.04);box-shadow:0 10px 40px rgba(34,197,94,0.7);}}
+        #map{height:340px;border-radius:16px;border:2px solid var(--border);overflow:hidden;}
+        .lb-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0ebe5;font-size:0.9rem;}
+        .lb-row:last-child{border-bottom:none;}
+        .lb-rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;}
+        .rank-1{background:#fef08a;color:#854d0e;}.rank-2{background:#e2e8f0;color:#475569;}.rank-3{background:#fed7aa;color:#9a3412;}.rank-other{background:#f5f5f4;color:#78716c;}
+        .reactions-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+        .reaction-btn{padding:8px 14px;border-radius:50px;background:#fff7ed;border:2px solid var(--border);font-size:0.85rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:5px;}
+        .reaction-btn:hover{background:#fed7aa;border-color:var(--orange);}
+        .reaction-btn.mine{background:var(--orange);color:white;border-color:var(--orange-dark);}
+        .feed-wrap{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+        .feed-item{font-size:0.85rem;padding:8px 12px;background:#fef9f0;border-radius:10px;border-left:3px solid var(--orange);animation:fadeIn 0.3s ease;}
+        .feed-pseudo{font-weight:800;color:var(--orange-dark);}
+        .feed-time{color:var(--muted);font-size:0.75rem;float:right;}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;}}
+        .hidden{display:none!important;}
     </style>
 </head>
 <body>
 <div id="app">
-
-    <!-- AUTH -->
     <div id="auth-screen" class="card">
         <h1>🔥 Le FLAMBEAU</h1>
         <p>Connecte-toi pour participer à la chasse aux œufs 2026 !</p>
         <input type="email" id="email" placeholder="📧 Ton email"/>
         <input type="password" id="pass" placeholder="🔒 Mot de passe"/>
         <button class="btn-primary" id="login-btn">JOUER →</button>
+        <p id="auth-error" style="color:red;font-size:0.85rem;margin-top:8px;"></p>
     </div>
 
-    <!-- GAME -->
     <div id="game-screen" class="hidden">
         <div id="game-header">
             <span class="game-title">🏆 Le FLAMBEAU 🔥</span>
             <div class="header-info">
-                <span>Bonjour, <strong id="pseudo-display" title="Clique pour modifier" style="cursor:pointer; border-bottom: 1px dashed var(--orange);" onclick="document.getElementById('pseudo-edit-wrap').classList.toggle('hidden')">—</strong></span>
+                <span>Bonjour, <strong id="pseudo-display" title="Clique pour modifier" style="cursor:pointer;border-bottom:1px dashed var(--orange);" onclick="document.getElementById('pseudo-edit-wrap').classList.toggle('hidden')">—</strong></span>
                 <div id="pseudo-edit-wrap" class="hidden" style="display:flex;gap:6px;align-items:center;">
                     <input type="text" id="pseudo-input" placeholder="Nouveau pseudo" style="width:140px;margin:0;padding:8px 12px;font-size:0.85rem;"/>
                     <button id="pseudo-save-btn" style="width:auto;padding:8px 14px;background:var(--orange);color:white;border-radius:10px;font-size:0.85rem;">✓</button>
                 </div>
-                <span class="score-badge"><span id="found-count">0</span>/<span id="total-eggs">7</span> 🥚</span>
+                <span class="score-badge"><span id="found-count">0</span>/7 🥚</span>
                 <button id="logout-btn">Quitter</button>
             </div>
         </div>
 
-        <!-- ŒUFS -->
         <div class="card" style="margin-bottom:16px;">
             <div class="card-title">🎯 Tes œufs trouvés</div>
             <div class="egg-grid" id="egg-grid"></div>
         </div>
 
-        <!-- ANNONCE ADMIN -->
-        <div id="admin-banner" class="hidden" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border-radius:14px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-weight:700;font-size:0.95rem;box-shadow:0 4px 20px rgba(124,58,237,0.3);animation:pulse 2s infinite;">
+        <div id="admin-banner" class="hidden" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border-radius:14px;padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-weight:700;font-size:0.95rem;box-shadow:0 4px 20px rgba(124,58,237,0.3);">
             <span style="font-size:1.4rem">📢</span>
             <span id="admin-banner-text"></span>
         </div>
 
-        <!-- PROXIMITY -->
         <div id="proximity-bar" class="cold">
             <span class="prox-dot"></span>
             <span id="prox-text">📡 Localisation en cours… bouge un peu ! 🐇</span>
         </div>
 
-        <!-- BOUTON RAMASSAGE -->
         <div id="pickup-wrap" class="hidden" style="margin-bottom:16px;text-align:center;">
-            <button id="pickup-btn" style="
-                background: linear-gradient(135deg, #22c55e, #16a34a);
-                color: white;
-                border: none;
-                border-radius: 20px;
-                padding: 18px 40px;
-                font-family: 'Fredoka One', cursive;
-                font-size: 1.4rem;
-                cursor: pointer;
-                box-shadow: 0 6px 30px rgba(34,197,94,0.5);
-                animation: bounce 0.8s infinite alternate;
-                width: 100%;
-                max-width: 400px;
-                letter-spacing: 0.5px;
-            ">
+            <button id="pickup-btn" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;border:none;border-radius:20px;padding:18px 40px;font-family:'Fredoka One',cursive;font-size:1.4rem;cursor:pointer;box-shadow:0 6px 30px rgba(34,197,94,0.5);animation:bounce 0.8s infinite alternate;width:100%;max-width:400px;">
                 🥚 Ramasser l'œuf !
             </button>
         </div>
 
         <div id="layout">
-            <!-- LEFT COLUMN -->
             <div>
-                <!-- LEADERBOARD -->
                 <div class="card" style="margin-bottom:16px;">
                     <div class="card-title">📊 Top Chasseurs</div>
                     <div id="leaderboard">Chargement…</div>
                 </div>
-
-                <!-- REACTIONS -->
                 <div class="card">
                     <div class="card-title">💬 Réactions</div>
                     <div class="reactions-wrap" id="reaction-btns">
@@ -375,287 +132,253 @@
                     <div class="feed-wrap" id="reaction-feed"></div>
                 </div>
             </div>
-
-            <!-- RIGHT COLUMN -->
             <div>
                 <div class="card">
                     <div class="card-title">🗺️ Carte de chasse</div>
                     <div id="map"></div>
-                    <p style="font-size:0.78rem;color:var(--muted);margin-top:10px;text-align:center;">
-                        🔵 Loin &nbsp;|&nbsp; 🟡 Proche &nbsp;|&nbsp; 🔴 Très proche — Les œufs ne sont pas affichés !
-                    </p>
+                    <p style="font-size:0.78rem;color:var(--muted);margin-top:10px;text-align:center;">🔵 Loin | 🟡 Proche | 🔴 Très proche — Les œufs ne sont pas affichés !</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<script>
+const SUPABASE_URL = 'https://eokeeiociilshqqhupkx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_qRmOxZ2yXr6D7D_yhiwJDA_cVTGItLe';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCnTctJGot0MNNEeF4qRLBLzU8wUlkh9mQ",
-    authDomain: "chasses-aux-oeufs.firebaseapp.com",
-    projectId: "chasses-aux-oeufs",
-    storageBucket: "chasses-aux-oeufs.firebasestorage.app",
-    messagingSenderId: "85456204641",
-    appId: "1:85456204641:web:9126e1e05f929fe05b0b20"
+const TOTAL_EGGS = 7;
+const emojis = ['🥚','🍫','🐣','🎁','🐰','🍯','✨'];
+const zones = [
+    {id:1,lat:6.86782,lng:-5.23877,radius:30},
+    {id:2,lat:6.869165375221916,lng:-5.238664233046246,radius:30},
+    {id:3,lat:6.889560839458854,lng:-5.225277637751446,radius:30},
+    {id:4,lat:6.881345272136254,lng:-5.229899462750671,radius:30},
+    {id:5,lat:6.878918533629497,lng:-5.230129159799086,radius:50},
+    {id:6,lat:6.880884675023955,lng:-5.231981740717989,radius:30}
+    // Œuf 7 temporairement désactivé
+];
+
+let foundEggs = [], currentUser = null, currentPseudo = '';
+let map, playerMarker, playerCircle, pendingEgg = null;
+
+// ── AUTH SIMPLE (pas d'email de confirmation) ─────────────
+// On utilise l'email comme identifiant unique, stocké dans Supabase
+document.getElementById('login-btn').onclick = async () => {
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const pass  = document.getElementById('pass').value;
+    const errEl = document.getElementById('auth-error');
+    errEl.textContent = '';
+    if (!email || !pass) { errEl.textContent = '❌ Remplis email et mot de passe'; return; }
+    if (pass.length < 6) { errEl.textContent = '❌ Mot de passe trop court (min 6 caractères)'; return; }
+
+    // Chercher le joueur par email dans la table users
+    const { data: existing } = await sb.from('users').select('*').eq('id', email).single();
+
+    if (existing) {
+        // Vérifier mot de passe (stocké hashé de façon simple)
+        if (existing.password !== btoa(pass)) {
+            errEl.textContent = '❌ Mot de passe incorrect';
+            return;
+        }
+        // Connexion OK
+        loginSuccess(existing);
+    } else {
+        // Nouveau joueur → créer
+        const pseudo = email.split('@')[0];
+        const { data: created, error } = await sb.from('users').insert({
+            id: email,
+            pseudo,
+            found_eggs: [],
+            score: 0,
+            password: btoa(pass)
+        }).select().single();
+        if (error) { errEl.textContent = '❌ Erreur: ' + error.message; return; }
+        loginSuccess(created);
+    }
 };
 
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+function loginSuccess(userData) {
+    currentUser = { id: userData.id, email: userData.id };
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
 
-const zones = [
-    { id:1, lat:6.86782,              lng:-5.23877,             radius:30 },
-    { id:2, lat:6.869165375221916,    lng:-5.238664233046246,   radius:30 },
-    { id:3, lat:6.889560839458854,    lng:-5.225277637751446,   radius:30 },
-    { id:4, lat:6.881345272136254,    lng:-5.229899462750671,   radius:30 },
-    { id:5, lat:6.878918533629497,    lng:-5.230129159799086,   radius:50 },
-    { id:6, lat:6.880884675023955,    lng:-5.231981740717989,   radius:30 }
-    // Œuf 7 temporairement désactivé — sera réintégré plus tard
-];
-const TOTAL_EGGS = 7; // Nombre total d'œufs affiché dans le jeu
-const emojis = ['🥚','🍫','🐣','🎁','🐰','🍯','✨'];
+    // Chargement instantané localStorage
+    try {
+        const saved = localStorage.getItem('eggs_' + currentUser.id);
+        const savedPseudo = localStorage.getItem('pseudo_' + currentUser.id);
+        if (saved) { foundEggs = JSON.parse(saved); if (!Array.isArray(foundEggs)) foundEggs = []; }
+        if (savedPseudo) { currentPseudo = savedPseudo; document.getElementById('pseudo-display').textContent = savedPseudo; }
+        document.getElementById('found-count').textContent = foundEggs.length;
+        drawGrid();
+    } catch(e) { foundEggs = []; }
 
-let foundEggs = [];
-let currentUser = null;
-let currentPseudo = '';
-let map, playerMarker, playerCircle;
+    // Appliquer données Supabase
+    applyProfile(userData);
 
-// ── MAP INIT ──────────────────────────────────────────────
-function initMap() {
-    map = L.map('map').setView([6.878, -5.232], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
+    initMap();
+    setupReactionBtns();
+    setupPseudoEdit();
+    setupPickupBtn();
+    loadLeaderboard();
+    loadReactions();
+    loadAnnouncements();
+    subscribeToMyProfile();
+    startGPS();
 }
 
-function updateMapPlayer(lat, lng, closestDist) {
-    const color = closestDist < 50 ? '#ef4444' : closestDist < 150 ? '#f59e0b' : '#3b82f6';
-    const radius = closestDist < 50 ? 50 : closestDist < 150 ? 120 : 250;
+document.getElementById('logout-btn').onclick = () => {
+    foundEggs = []; currentUser = null; currentPseudo = '';
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('game-screen').classList.add('hidden');
+};
 
-    if (playerCircle) { playerCircle.remove(); }
-    playerCircle = L.circle([lat, lng], {
-        radius,
-        color,
-        fillColor: color,
-        fillOpacity: 0.15,
-        weight: 2
-    }).addTo(map);
-
-    const iconHtml = `<div style="background:${color};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>`;
-    const icon = L.divIcon({ html: iconHtml, className: '', iconAnchor: [9,9] });
-
-    if (playerMarker) { playerMarker.setLatLng([lat, lng]).setIcon(icon); }
-    else { playerMarker = L.marker([lat, lng], { icon }).addTo(map); }
-
-    map.setView([lat, lng], Math.max(map.getZoom(), 15));
+// ── MON PROFIL (temps réel) ───────────────────────────────
+function subscribeToMyProfile() {
+    // Temps réel — écoute les changements sur mon profil (admin peut modifier)
+    sb.channel('my-profile-' + currentUser.id)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${currentUser.id}` },
+            payload => { if (payload.new) applyProfile(payload.new); })
+        .subscribe();
 }
 
-// ── PROXIMITY ─────────────────────────────────────────────
-function getClosestDist(uLat, uLng) {
-    let min = Infinity;
-    zones.forEach(z => {
-        if (!foundEggs.includes(z.id)) {
-            const d = getDist(uLat, uLng, z.lat, z.lng);
-            if (d < min) min = d;
-        }
+function applyProfile(data) {
+    const remote = Array.isArray(data.found_eggs) ? data.found_eggs : [];
+    foundEggs = [...remote];
+    currentPseudo = data.pseudo || currentPseudo || currentUser.email.split('@')[0];
+    localStorage.setItem('eggs_' + currentUser.id, JSON.stringify(foundEggs));
+    localStorage.setItem('pseudo_' + currentUser.id, currentPseudo);
+    document.getElementById('pseudo-display').textContent = currentPseudo;
+    document.getElementById('found-count').textContent = foundEggs.length;
+    drawGrid();
+}
+
+// ── PSEUDO ────────────────────────────────────────────────
+function setupPseudoEdit() {
+    document.getElementById('pseudo-save-btn').onclick = async () => {
+        const val = document.getElementById('pseudo-input').value.trim();
+        if (!val || val.length < 2) return alert('Pseudo trop court');
+        if (val.length > 20) return alert('Pseudo trop long');
+        currentPseudo = val;
+        localStorage.setItem('pseudo_' + currentUser.id, val);
+        document.getElementById('pseudo-display').textContent = val;
+        document.getElementById('pseudo-edit-wrap').classList.add('hidden');
+        document.getElementById('pseudo-input').value = '';
+        await sb.from('users').update({ pseudo: val }).eq('id', currentUser.id);
+    };
+    document.getElementById('pseudo-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('pseudo-save-btn').click();
     });
-    return min;
 }
 
-function updateProximityUI(dist) {
-    const bar  = document.getElementById('proximity-bar');
-    const text = document.getElementById('prox-text');
-    bar.className = '';
-
-    if (dist === Infinity) {
-        bar.classList.add('cold');
-        text.textContent = 'Tous les œufs sont trouvés ! 🎉';
-    } else if (dist > 200) {
-        bar.classList.add('cold');
-        text.textContent = "🔵 Continue d'explorer… tu es loin.";
-    } else if (dist > 60) {
-        bar.classList.add('warm');
-        text.textContent = "🟡 Tu chauffes ! Un œuf n'est pas loin.";
-    } else {
-        bar.classList.add('hot');
-        text.textContent = "🔴 BRÛLANT ! L'œuf est tout proche !";
-    }
-}
-
-// ── GPS ───────────────────────────────────────────────────
-function startGPS() {
-    navigator.geolocation.watchPosition(async (pos) => {
-        const uLat = pos.coords.latitude;
-        const uLng = pos.coords.longitude;
-        const closestDist = getClosestDist(uLat, uLng);
-
-        updateProximityUI(closestDist);
-        updateMapPlayer(uLat, uLng, closestDist);
-
-        // Sauvegarder la position pour la carte admin
-        if (currentUser) {
-            setDoc(doc(db, "users", currentUser.uid), { lat: uLat, lng: uLng }, { merge: true });
-        }
-
-        // Détection de zone → afficher/cacher le bouton ramassage
-        let eggInRange = null;
-        for (const z of zones) {
-            if (foundEggs.includes(z.id)) continue;
-            const dist = getDist(uLat, uLng, z.lat, z.lng);
-            if (dist <= z.radius) { eggInRange = z; break; }
-        }
-        updatePickupButton(eggInRange);
-    }, (err) => {
-        const text = document.getElementById('prox-text');
-        const bar  = document.getElementById('proximity-bar');
-        bar.className = 'cold';
-        if (err.code === 1) {
-            text.textContent = "❌ GPS refusé — autorise la localisation dans ton navigateur.";
-        } else if (err.code === 2) {
-            text.textContent = "📡 GPS indisponible — vérifie ta connexion ou bouge en extérieur.";
-        } else {
-            text.textContent = "⏳ GPS lent à répondre… patiente ou recharge la page.";
-        }
-    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
-}
-
-// ── EGG GRID ──────────────────────────────────────────────
+// ── GRILLE ────────────────────────────────────────────────
 function drawGrid() {
     const grid = document.getElementById('egg-grid');
     grid.innerHTML = '';
     for (let i = 1; i <= TOTAL_EGGS; i++) {
-        const isFound = foundEggs.includes(i);
-        grid.innerHTML += `<div class="egg-slot"><span class="egg ${isFound?'found':''}">${emojis[i-1]}</span></div>`;
+        const found = foundEggs.includes(i);
+        grid.innerHTML += `<div class="egg-slot"><span class="egg ${found?'found':''}">${emojis[i-1]}</span></div>`;
     }
 }
 
 // ── LEADERBOARD ───────────────────────────────────────────
 function loadLeaderboard() {
-    onSnapshot(collection(db, "users"), (snap) => {
-        let players = [];
-        snap.forEach(d => {
-            const p = d.data();
-            if (!p.pseudo || p.pseudo.trim().length === 0) return;
-            // Score TOUJOURS recalculé depuis foundEggs — jamais depuis p.score
-            const eggs = Array.isArray(p.foundEggs) ? p.foundEggs : [];
-            const realScore = eggs.length;
-            players.push({
-                pseudo: p.pseudo.trim(),
-                score: realScore
-            });
-        });
-        // Tri stable : score décroissant, puis pseudo alphabétique
-        players.sort((a, b) => b.score - a.score || a.pseudo.localeCompare(b.pseudo, 'fr'));
-        const medals = ['🥇','🥈','🥉'];
-        let html = '';
-        players.slice(0, 8).forEach((p, i) => {
-            const bar = Math.round((p.score / TOTAL_EGGS) * 100);
-            html += `<div class="lb-row">
-                <div class="lb-rank ${i<3?'rank-'+(i+1):'rank-other'}">${medals[i]||i+1}</div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:700;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.pseudo}</div>
-                    <div style="height:4px;background:#f0ebe5;border-radius:2px;margin-top:4px;">
-                        <div style="height:4px;background:var(--orange);border-radius:2px;width:${bar}%;transition:width 0.4s;"></div>
-                    </div>
+    // Chargement initial
+    refreshLeaderboard();
+    // Temps réel
+    sb.channel('leaderboard')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, refreshLeaderboard)
+        .subscribe();
+}
+
+async function refreshLeaderboard() {
+    const { data } = await sb.from('users').select('pseudo, found_eggs').not('pseudo', 'is', null);
+    if (!data) return;
+    let players = data
+        .filter(p => p.pseudo?.trim())
+        .map(p => ({ pseudo: p.pseudo.trim(), score: Array.isArray(p.found_eggs) ? p.found_eggs.length : 0 }));
+    players.sort((a, b) => b.score - a.score || a.pseudo.toLowerCase().localeCompare(b.pseudo.toLowerCase(), 'fr'));
+    const medals = ['🥇','🥈','🥉'];
+    let html = '';
+    players.slice(0, 10).forEach((p, i) => {
+        const bar = Math.round((p.score / TOTAL_EGGS) * 100);
+        html += `<div class="lb-row">
+            <div class="lb-rank ${i<3?'rank-'+(i+1):'rank-other'}" style="flex-shrink:0;">${medals[i]||i+1}</div>
+            <div style="flex:1;min-width:0;overflow:hidden;">
+                <div style="font-weight:700;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.pseudo}</div>
+                <div style="height:4px;background:#f0ebe5;border-radius:2px;margin-top:4px;">
+                    <div style="height:4px;background:var(--orange);border-radius:2px;width:${bar}%;transition:width 0.5s;"></div>
                 </div>
-                <span class="lb-score" style="margin-left:8px;flex-shrink:0;">${p.score}/${TOTAL_EGGS}</span>
-            </div>`;
-        });
-        document.getElementById('leaderboard').innerHTML = html || '<p style="color:var(--muted);font-size:0.85rem">Aucun joueur encore.</p>';
+            </div>
+            <span style="margin-left:8px;flex-shrink:0;font-weight:800;color:var(--orange-dark);font-size:0.88rem;">${p.score}/${TOTAL_EGGS}</span>
+        </div>`;
     });
+    document.getElementById('leaderboard').innerHTML = html || '<p style="color:var(--muted);font-size:0.85rem">Aucun joueur encore.</p>';
 }
 
-// ── REACTIONS ─────────────────────────────────────────────
+// ── RÉACTIONS ─────────────────────────────────────────────
 function loadReactions() {
-    const q = query(collection(db, "reactions"), orderBy("ts", "desc"), limit(20));
-    onSnapshot(q, (snap) => {
-        const feed = document.getElementById('reaction-feed');
-        feed.innerHTML = '';
-        snap.forEach(d => {
-            const r = d.data();
-            const time = r.ts ? new Date(r.ts.seconds*1000).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '';
-            if (r.isAdmin) {
-                feed.innerHTML += `<div class="feed-item" style="background:#ede9fe;border-left:3px solid #7c3aed;">
-                    <span class="feed-time">${time}</span>
-                    <span style="color:#5b21b6;font-weight:800">📢 Admin</span> ${r.text||''}
-                </div>`;
-            } else {
-                feed.innerHTML += `<div class="feed-item">
-                    <span class="feed-time">${time}</span>
-                    <span class="feed-pseudo">${r.pseudo}</span> ${r.reaction} ${r.text||''}
-                </div>`;
-            }
-        });
-    });
+    refreshReactions();
+    sb.channel('reactions-feed')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions' }, refreshReactions)
+        .subscribe();
 }
 
-function setupReactionBtns() {
-    document.querySelectorAll('.reaction-btn').forEach(btn => {
-        btn.onclick = async () => {
-            const r = btn.dataset.r;
-            const texts = {
-                '🔥': 'est en mode chasseur !',
-                '😭': 'cherche encore…',
-                '🎉': 'a trouvé un œuf !',
-                '🤔': 'est complètement perdu 😅',
-                '🏃': 'est en route !'
-            };
-            document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('mine'));
-            btn.classList.add('mine');
-            await addDoc(collection(db, "reactions"), {
-                pseudo: currentPseudo,
-                reaction: r,
-                text: texts[r] || '',
-                ts: serverTimestamp()
-            });
-        };
-    });
-}
-
-// ── PSEUDO EDIT ───────────────────────────────────────
-function setupPseudoEdit() {
-    document.getElementById('pseudo-save-btn').onclick = async () => {
-        const val = document.getElementById('pseudo-input').value.trim();
-        if (!val || val.length < 2) return alert('Pseudo trop court (min 2 caractères)');
-        if (val.length > 20) return alert('Pseudo trop long (max 20 caractères)');
-        currentPseudo = val;
-        localStorage.setItem('pseudo_' + currentUser.uid, val);
-        document.getElementById('pseudo-display').textContent = val;
-        document.getElementById('pseudo-edit-wrap').classList.add('hidden');
-        document.getElementById('pseudo-input').value = '';
-        await setDoc(doc(db, "users", currentUser.uid), { pseudo: val }, { merge: true });
-    };
-    document.getElementById('pseudo-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') document.getElementById('pseudo-save-btn').click();
-    });
-}
-
-// ── ANNONCES ADMIN ───────────────────────────────────────
-function loadAnnouncements() {
-    const q = query(collection(db, "announcements"), orderBy("ts", "desc"), limit(1));
-    onSnapshot(q, (snap) => {
-        if (!snap.empty) {
-            const data = snap.docs[0].data();
-            const banner = document.getElementById("admin-banner");
-            const bannerText = document.getElementById("admin-banner-text");
-            if (data.text && data.active) {
-                bannerText.textContent = data.text;
-                banner.classList.remove("hidden");
-            } else {
-                banner.classList.add("hidden");
-            }
+async function refreshReactions() {
+    const { data } = await sb.from('reactions').select('*').order('created_at', { ascending: false }).limit(20);
+    if (!data) return;
+    const feed = document.getElementById('reaction-feed');
+    feed.innerHTML = '';
+    data.forEach(r => {
+        const time = new Date(r.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+        if (r.is_admin) {
+            feed.innerHTML += `<div class="feed-item" style="background:#ede9fe;border-left:3px solid #7c3aed;">
+                <span class="feed-time">${time}</span>
+                <span style="color:#5b21b6;font-weight:800">📢 Admin</span> ${r.message||''}
+            </div>`;
+        } else {
+            feed.innerHTML += `<div class="feed-item">
+                <span class="feed-time">${time}</span>
+                <span class="feed-pseudo">${r.pseudo||''}</span> ${r.reaction||''} ${r.message||''}
+            </div>`;
         }
     });
 }
 
-// ── RAMASSAGE ─────────────────────────────────────────────
-let pendingEgg = null;
+function setupReactionBtns() {
+    const texts = {'🔥':'est en mode chasseur !','😭':'cherche encore…','🎉':'a trouvé un œuf !','🤔':'est complètement perdu 😅','🏃':'est en route !'};
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.onclick = async () => {
+            const r = btn.dataset.r;
+            document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('mine'));
+            btn.classList.add('mine');
+            await sb.from('reactions').insert({ pseudo: currentPseudo, reaction: r, message: texts[r]||'', is_admin: false });
+        };
+    });
+}
 
+// ── ANNONCES ADMIN ────────────────────────────────────────
+function loadAnnouncements() {
+    refreshAnnouncement();
+    sb.channel('announcements-watch')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, refreshAnnouncement)
+        .subscribe();
+}
+
+async function refreshAnnouncement() {
+    const { data } = await sb.from('announcements').select('*').eq('active', true).order('created_at', { ascending: false }).limit(1);
+    const banner = document.getElementById('admin-banner');
+    const bannerText = document.getElementById('admin-banner-text');
+    if (data && data.length > 0) {
+        bannerText.textContent = data[0].message;
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
+}
+
+// ── RAMASSAGE ─────────────────────────────────────────────
 function updatePickupButton(zone) {
     const wrap = document.getElementById('pickup-wrap');
     const btn  = document.getElementById('pickup-btn');
@@ -671,130 +394,89 @@ function updatePickupButton(zone) {
 
 function setupPickupBtn() {
     document.getElementById('pickup-btn').onclick = async () => {
-        if (!pendingEgg) return;
-        if (foundEggs.includes(pendingEgg.id)) return;
-
+        if (!pendingEgg || foundEggs.includes(pendingEgg.id)) return;
         const z = pendingEgg;
         foundEggs.push(z.id);
         const newScore = foundEggs.length;
         pendingEgg = null;
         document.getElementById('pickup-wrap').classList.add('hidden');
-
         confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-        // Sauvegarder immédiatement en local ET Firestore
-        localStorage.setItem('eggs_' + currentUser.uid, JSON.stringify(foundEggs));
-        await setDoc(doc(db, "users", currentUser.uid), { foundEggs, score: newScore }, { merge: true });
-        await addDoc(collection(db, "reactions"), {
-            pseudo: currentPseudo,
-            reaction: '🎉',
-            text: `vient de ramasser l'œuf ${emojis[z.id-1]} !`,
-            ts: serverTimestamp()
-        });
-
+        await sb.from('users').update({ found_eggs: foundEggs, score: newScore }).eq('id', currentUser.id);
+        await sb.from('reactions').insert({ pseudo: currentPseudo, reaction: '🎉', message: `vient de ramasser l'œuf ${emojis[z.id-1]} !`, is_admin: false });
         setTimeout(() => {
-            if (newScore === zones.length) alert("🏆 INCROYABLE ! Tu as ramassé tous les œufs actifs !");
+            if (newScore === TOTAL_EGGS) alert('🏆 INCROYABLE ! Tu as trouvé les 7 œufs ! Tu es le champion du FLAMBEAU !');
             else alert(`🎉 Œuf ${z.id} ramassé ! Plus que ${zones.length - newScore} à trouver.`);
         }, 500);
     };
 }
 
-// ── AUTH ──────────────────────────────────────────────────
-document.getElementById('login-btn').onclick = async () => {
-    const e = document.getElementById('email').value;
-    const p = document.getElementById('pass').value;
-    try { await signInWithEmailAndPassword(auth, e, p); }
-    catch {
-        const res = await createUserWithEmailAndPassword(auth, e, p);
-        await setDoc(doc(db, "users", res.user.uid), { pseudo: e.split('@')[0], score: 0, foundEggs: [] });
-    }
-};
-document.getElementById('logout-btn').onclick = () => signOut(auth);
+// ── MAP ───────────────────────────────────────────────────
+function initMap() {
+    map = L.map('map').setView([6.878, -5.232], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap'}).addTo(map);
+}
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.remove('hidden');
+function updateMapPlayer(lat, lng, closestDist) {
+    const color = closestDist < 50 ? '#ef4444' : closestDist < 150 ? '#f59e0b' : '#3b82f6';
+    const radius = closestDist < 50 ? 50 : closestDist < 150 ? 120 : 250;
+    if (playerCircle) playerCircle.remove();
+    playerCircle = L.circle([lat,lng],{radius,color,fillColor:color,fillOpacity:0.15,weight:2}).addTo(map);
+    const iconHtml = `<div style="background:${color};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>`;
+    const icon = L.divIcon({html:iconHtml,className:'',iconAnchor:[9,9]});
+    if (playerMarker) playerMarker.setLatLng([lat,lng]).setIcon(icon);
+    else playerMarker = L.marker([lat,lng],{icon}).addTo(map);
+    map.setView([lat,lng], Math.max(map.getZoom(),15));
+}
 
-        // ── RESTAURATION INSTANTANÉE depuis localStorage ──
-        // Charger immédiatement avant que Firestore réponde
-        const savedEggs = localStorage.getItem('eggs_' + user.uid);
-        if (savedEggs) {
-            try {
-                const parsed = JSON.parse(savedEggs);
-                if (Array.isArray(parsed)) {
-                    parsed.forEach(id => { if (!foundEggs.includes(id)) foundEggs.push(id); });
-                }
-            } catch(e) {}
+// ── GPS ───────────────────────────────────────────────────
+function getClosestDist(uLat, uLng) {
+    let min = Infinity;
+    zones.forEach(z => {
+        if (!foundEggs.includes(z.id)) {
+            const d = getDist(uLat,uLng,z.lat,z.lng);
+            if (d < min) min = d;
         }
-        const savedPseudo = localStorage.getItem('pseudo_' + user.uid);
-        if (savedPseudo) {
-            currentPseudo = savedPseudo;
-            document.getElementById('pseudo-display').textContent = savedPseudo;
+    });
+    return min;
+}
+
+function updateProximityUI(dist) {
+    const bar  = document.getElementById('proximity-bar');
+    const text = document.getElementById('prox-text');
+    bar.className = '';
+    if (dist === Infinity) { bar.classList.add('cold'); text.textContent = 'Tous les œufs sont trouvés ! 🎉'; }
+    else if (dist > 200) { bar.classList.add('cold'); text.textContent = "🔵 Continue d'explorer… tu es loin."; }
+    else if (dist > 60)  { bar.classList.add('warm'); text.textContent = "🟡 Tu chauffes ! Un œuf n'est pas loin."; }
+    else                 { bar.classList.add('hot');  text.textContent = "🔴 BRÛLANT ! L'œuf est tout proche !"; }
+}
+
+function startGPS() {
+    navigator.geolocation.watchPosition(async pos => {
+        const uLat = pos.coords.latitude, uLng = pos.coords.longitude;
+        const closestDist = getClosestDist(uLat, uLng);
+        updateProximityUI(closestDist);
+        updateMapPlayer(uLat, uLng, closestDist);
+        if (currentUser) sb.from('users').update({lat:uLat,lng:uLng}).eq('id',currentUser.id).then(()=>{});
+        let eggInRange = null;
+        for (const z of zones) {
+            if (foundEggs.includes(z.id)) continue;
+            if (getDist(uLat,uLng,z.lat,z.lng) <= z.radius) { eggInRange = z; break; }
         }
-        document.getElementById('found-count').textContent = foundEggs.length;
-        document.getElementById('total-eggs').textContent = TOTAL_EGGS;
-        drawGrid();
+        updatePickupButton(eggInRange);
+    }, err => {
+        const bar = document.getElementById('proximity-bar');
+        bar.className = ''; bar.classList.add('cold');
+        const msgs = {1:"❌ GPS refusé — autorise la localisation.",2:"📡 GPS indisponible.",3:"⏳ GPS lent… patiente."};
+        document.getElementById('prox-text').textContent = msgs[err.code]||"GPS indisponible.";
+    }, {enableHighAccuracy:true,maximumAge:0,timeout:15000});
+}
 
-        initMap();
-        setupReactionBtns();
-        setupPseudoEdit();
-        setupPickupBtn();
-        loadLeaderboard();
-        loadReactions();
-        loadAnnouncements();
-
-        // ── SYNCHRONISATION Firestore (source de vérité) ──
-        onSnapshot(doc(db, "users", user.uid), (d) => {
-            if (d.exists()) {
-                const data = d.data();
-
-                // Fusionner Firestore + localStorage (on ne retire jamais un œuf)
-                const remote = data.foundEggs || [];
-                let changed = false;
-                remote.forEach(id => {
-                    if (!foundEggs.includes(id)) { foundEggs.push(id); changed = true; }
-                });
-
-                // Pseudo : Firestore prioritaire
-                const pseudo = data.pseudo || currentPseudo || user.email.split('@')[0];
-                currentPseudo = pseudo;
-
-                // Sauvegarder dans localStorage pour le prochain refresh
-                localStorage.setItem('eggs_' + user.uid, JSON.stringify(foundEggs));
-                localStorage.setItem('pseudo_' + user.uid, currentPseudo);
-
-                document.getElementById('pseudo-display').textContent = currentPseudo;
-                document.getElementById('found-count').textContent = foundEggs.length;
-                document.getElementById('total-eggs').textContent = TOTAL_EGGS;
-                drawGrid();
-
-                // Si Firestore avait moins d'œufs qu'en local → resynchroniser Firestore
-                if (foundEggs.length > remote.length) {
-                    setDoc(doc(db, "users", user.uid), {
-                        foundEggs: foundEggs,
-                        score: foundEggs.length,
-                        pseudo: currentPseudo
-                    }, { merge: true });
-                }
-            }
-        });
-        startGPS();
-    } else {
-        currentUser = null;
-        document.getElementById('auth-screen').classList.remove('hidden');
-        document.getElementById('game-screen').classList.add('hidden');
-    }
-});
-
-// ── UTILS ─────────────────────────────────────────────────
-function getDist(lat1, lon1, lat2, lon2) {
-    const R = 6371e3;
-    const dLat = (lat2-lat1)*Math.PI/180;
-    const dLon = (lon2-lon1)*Math.PI/180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function getDist(lat1,lon1,lat2,lon2) {
+    const R=6371e3,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+    const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 </script>
 </body>
 </html>
+
