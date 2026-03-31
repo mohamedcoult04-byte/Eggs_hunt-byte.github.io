@@ -309,7 +309,7 @@
                     <input type="text" id="pseudo-input" placeholder="Nouveau pseudo" style="width:140px;margin:0;padding:8px 12px;font-size:0.85rem;"/>
                     <button id="pseudo-save-btn" style="width:auto;padding:8px 14px;background:var(--orange);color:white;border-radius:10px;font-size:0.85rem;">✓</button>
                 </div>
-                <span class="score-badge"><span id="found-count">0</span>/7 🥚</span>
+                <span class="score-badge"><span id="found-count">0</span>/<span id="total-eggs">7</span> 🥚</span>
                 <button id="logout-btn">Quitter</button>
             </div>
         </div>
@@ -329,7 +329,7 @@
         <!-- PROXIMITY -->
         <div id="proximity-bar" class="cold">
             <span class="prox-dot"></span>
-            <span id="prox-text">Explore le campus pour trouver des œufs… 🐇</span>
+            <span id="prox-text">📡 Localisation en cours… bouge un peu ! 🐇</span>
         </div>
 
         <!-- BOUTON RAMASSAGE -->
@@ -414,9 +414,10 @@ const zones = [
     { id:3, lat:6.889560839458854,    lng:-5.225277637751446,   radius:30 },
     { id:4, lat:6.881345272136254,    lng:-5.229899462750671,   radius:30 },
     { id:5, lat:6.878918533629497,    lng:-5.230129159799086,   radius:50 },
-    { id:6, lat:6.880884675023955,    lng:-5.231981740717989,   radius:30 },
-    { id:7, lat:6.872646048210374,    lng:-5.233116100112857,   radius:70 }
+    { id:6, lat:6.880884675023955,    lng:-5.231981740717989,   radius:30 }
+    // Œuf 7 temporairement désactivé — sera réintégré plus tard
 ];
+const TOTAL_EGGS = 7; // Nombre total d'œufs affiché dans le jeu
 const emojis = ['🥚','🍫','🐣','🎁','🐰','🍯','✨'];
 
 let foundEggs = [];
@@ -509,15 +510,27 @@ function startGPS() {
             if (dist <= z.radius) { eggInRange = z; break; }
         }
         updatePickupButton(eggInRange);
-    }, null, { enableHighAccuracy: true, maximumAge: 0 });
+    }, (err) => {
+        const text = document.getElementById('prox-text');
+        const bar  = document.getElementById('proximity-bar');
+        bar.className = 'cold';
+        if (err.code === 1) {
+            text.textContent = "❌ GPS refusé — autorise la localisation dans ton navigateur.";
+        } else if (err.code === 2) {
+            text.textContent = "📡 GPS indisponible — vérifie ta connexion ou bouge en extérieur.";
+        } else {
+            text.textContent = "⏳ GPS lent à répondre… patiente ou recharge la page.";
+        }
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
 }
 
 // ── EGG GRID ──────────────────────────────────────────────
 function drawGrid() {
     const grid = document.getElementById('egg-grid');
     grid.innerHTML = '';
-    for (let i = 1; i <= 7; i++) {
-        grid.innerHTML += `<div class="egg-slot"><span class="egg ${foundEggs.includes(i)?'found':''}">${emojis[i-1]}</span></div>`;
+    for (let i = 1; i <= TOTAL_EGGS; i++) {
+        const isFound = foundEggs.includes(i);
+        grid.innerHTML += `<div class="egg-slot"><span class="egg ${isFound?'found':''}">${emojis[i-1]}</span></div>`;
     }
 }
 
@@ -525,15 +538,32 @@ function drawGrid() {
 function loadLeaderboard() {
     onSnapshot(collection(db, "users"), (snap) => {
         let players = [];
-        snap.forEach(d => players.push(d.data()));
-        players.sort((a, b) => b.score - a.score);
+        snap.forEach(d => {
+            const p = d.data();
+            // Exclure les comptes sans pseudo valide (anonymes, vides)
+            if (p.pseudo && p.pseudo.trim().length > 0) {
+                players.push({
+                    pseudo: p.pseudo.trim(),
+                    score: typeof p.score === 'number' ? p.score : 0,
+                    foundEggs: Array.isArray(p.foundEggs) ? p.foundEggs : []
+                });
+            }
+        });
+        // Tri stable : score décroissant, puis pseudo alphabétique pour départager
+        players.sort((a, b) => b.score - a.score || a.pseudo.localeCompare(b.pseudo, 'fr'));
         const medals = ['🥇','🥈','🥉'];
         let html = '';
         players.slice(0, 8).forEach((p, i) => {
+            const bar = Math.round((p.score / TOTAL_EGGS) * 100);
             html += `<div class="lb-row">
                 <div class="lb-rank ${i<3?'rank-'+(i+1):'rank-other'}">${medals[i]||i+1}</div>
-                <span class="lb-name">${p.pseudo}</span>
-                <span class="lb-score">${p.score}/7</span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.pseudo}</div>
+                    <div style="height:4px;background:#f0ebe5;border-radius:2px;margin-top:4px;">
+                        <div style="height:4px;background:var(--orange);border-radius:2px;width:${bar}%;transition:width 0.4s;"></div>
+                    </div>
+                </div>
+                <span class="lb-score" style="margin-left:8px;flex-shrink:0;">${p.score}/${TOTAL_EGGS}</span>
             </div>`;
         });
         document.getElementById('leaderboard').innerHTML = html || '<p style="color:var(--muted);font-size:0.85rem">Aucun joueur encore.</p>';
@@ -594,6 +624,7 @@ function setupPseudoEdit() {
         if (!val || val.length < 2) return alert('Pseudo trop court (min 2 caractères)');
         if (val.length > 20) return alert('Pseudo trop long (max 20 caractères)');
         currentPseudo = val;
+        localStorage.setItem('pseudo_' + currentUser.uid, val);
         document.getElementById('pseudo-display').textContent = val;
         document.getElementById('pseudo-edit-wrap').classList.add('hidden');
         document.getElementById('pseudo-input').value = '';
@@ -659,8 +690,8 @@ function setupPickupBtn() {
         });
 
         setTimeout(() => {
-            if (newScore === 7) alert("🏆 INCROYABLE ! Tu as ramassé les 7 œufs !");
-            else alert(`🎉 Œuf ${z.id} ramassé ! Plus que ${7 - newScore} à trouver.`);
+            if (newScore === zones.length) alert("🏆 INCROYABLE ! Tu as ramassé tous les œufs actifs !");
+            else alert(`🎉 Œuf ${z.id} ramassé ! Plus que ${zones.length - newScore} à trouver.`);
         }, 500);
     };
 }
@@ -692,10 +723,16 @@ onAuthStateChanged(auth, (user) => {
 
         onSnapshot(doc(db, "users", user.uid), (d) => {
             if (d.exists()) {
-                foundEggs = d.data().foundEggs || [];
-                currentPseudo = d.data().pseudo || user.email.split('@')[0];
+                const data = d.data();
+                // Fusionner les œufs Firestore avec ceux en mémoire (jamais réduire)
+                const remote = data.foundEggs || [];
+                remote.forEach(id => { if (!foundEggs.includes(id)) foundEggs.push(id); });
+                currentPseudo = data.pseudo || localStorage.getItem('pseudo_' + user.uid) || user.email.split('@')[0];
+                // Sauvegarder en local pour survie au refresh
+                localStorage.setItem('pseudo_' + user.uid, currentPseudo);
                 document.getElementById('pseudo-display').textContent = currentPseudo;
                 document.getElementById('found-count').textContent = foundEggs.length;
+                document.getElementById('total-eggs').textContent = TOTAL_EGGS;
                 drawGrid();
             }
         });
@@ -718,6 +755,3 @@ function getDist(lat1, lon1, lat2, lon2) {
 </script>
 </body>
 </html>
-
-
-
