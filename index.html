@@ -476,13 +476,13 @@ function updateProximityUI(dist) {
         text.textContent = 'Tous les œufs sont trouvés ! 🎉';
     } else if (dist > 200) {
         bar.classList.add('cold');
-        text.textContent = `🔵 Continue d'explorer… tu es loin. (${Math.round(dist)}m)`;
+        text.textContent = "🔵 Continue d'explorer… tu es loin.";
     } else if (dist > 60) {
         bar.classList.add('warm');
-        text.textContent = `🟡 Tu chauffes ! Un œuf n'est pas loin. (~${Math.round(dist)}m)`;
+        text.textContent = "🟡 Tu chauffes ! Un œuf n'est pas loin.";
     } else {
         bar.classList.add('hot');
-        text.textContent = `🔴 BRÛLANT ! L'œuf est tout proche ! (<${Math.round(dist)}m)`;
+        text.textContent = "🔴 BRÛLANT ! L'œuf est tout proche !";
     }
 }
 
@@ -718,5 +718,6 @@ function getDist(lat1, lon1, lat2, lon2) {
 </script>
 </body>
 </html>
+
 
 
