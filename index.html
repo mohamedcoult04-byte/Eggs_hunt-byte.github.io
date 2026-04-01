@@ -157,7 +157,7 @@ const zones = [
     {id:4,lat:6.881345272136254,lng:-5.229899462750671,radius:30},
     {id:5,lat:6.878918533629497,lng:-5.230129159799086,radius:50},
     {id:6,lat:6.880884675023955,lng:-5.231981740717989,radius:30},
-    {id:7,lat:6.876811340202768,lng:-5.228523167111767,radius:10}
+    {id:7,lat:6.8630153085279195,lng:-5.237746960947392,radius:10}
 ];
 
 let foundEggs = [], currentUser = null, currentPseudo = '';
@@ -444,15 +444,35 @@ function updateProximityUI(dist) {
     const bar  = document.getElementById('proximity-bar');
     const text = document.getElementById('prox-text');
     bar.className = '';
+
+    // Vérifier si l'œuf 7 est le plus proche (et pas encore trouvé)
+    if (!foundEggs.includes(7)) {
+        const egg7 = zones.find(z => z.id === 7);
+        if (egg7 && _lastLat && _lastLng) {
+            const d7 = getDist(_lastLat, _lastLng, egg7.lat, egg7.lng);
+            // Si l'œuf 7 est le plus proche
+            const otherMin = zones.filter(z => z.id !== 7 && !foundEggs.includes(z.id))
+                .reduce((m, z) => Math.min(m, getDist(_lastLat, _lastLng, z.lat, z.lng)), Infinity);
+            if (d7 <= otherMin) {
+                bar.classList.add('cold');
+                text.textContent = "🍀 Bonne chance pour me trouver !";
+                return;
+            }
+        }
+    }
+
     if (dist === Infinity) { bar.classList.add('cold'); text.textContent = 'Tous les œufs sont trouvés ! 🎉'; }
     else if (dist > 200) { bar.classList.add('cold'); text.textContent = "🔵 Continue d'explorer… tu es loin."; }
     else if (dist > 60)  { bar.classList.add('warm'); text.textContent = "🟡 Tu chauffes ! Un œuf n'est pas loin."; }
     else                 { bar.classList.add('hot');  text.textContent = "🔴 BRÛLANT ! L'œuf est tout proche !"; }
 }
 
+let _lastLat = null, _lastLng = null;
+
 function startGPS() {
     navigator.geolocation.watchPosition(async pos => {
         const uLat = pos.coords.latitude, uLng = pos.coords.longitude;
+        _lastLat = uLat; _lastLng = uLng;
         const closestDist = getClosestDist(uLat, uLng);
         updateProximityUI(closestDist);
         updateMapPlayer(uLat, uLng, closestDist);
@@ -479,5 +499,3 @@ function getDist(lat1,lon1,lat2,lon2) {
 </script>
 </body>
 </html>
-
-
