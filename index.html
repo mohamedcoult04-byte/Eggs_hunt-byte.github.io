@@ -66,6 +66,210 @@
         .feed-time{color:var(--muted);font-size:0.75rem;float:right;}
         @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;}}
         .hidden{display:none!important;}
+
+        /* ── NAVIGATION ── */
+        #nav-bar {
+            display: flex;
+            background: white;
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            padding: 6px;
+            margin-bottom: 16px;
+            gap: 6px;
+            box-shadow: 0 4px 20px rgba(249,115,22,0.08);
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 14px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1rem;
+            font-weight: 800;
+            background: none;
+            color: var(--muted);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .nav-btn.active {
+            background: var(--orange);
+            color: white;
+            box-shadow: 0 4px 12px rgba(249,115,22,0.3);
+        }
+        .nav-btn:hover:not(.active) { background: #fff7ed; color: var(--orange); }
+
+        /* ── PAGE CARTE ── */
+        #card-page {
+            display: none;
+            min-height: 60vh;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            padding: 10px 0 30px;
+        }
+
+        /* ── CARTE DE FIDÉLITÉ ── */
+        .loyalty-card {
+            border-radius: 24px;
+            padding: 30px 32px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            max-width: 420px;
+            min-height: 220px;
+        }
+        .loyalty-card.gold {
+            background: linear-gradient(135deg, #92650a, #ffd700 40%, #f59e0b 60%, #b8860b);
+            background-size: 300% 300%;
+            animation: shimmer 4s ease infinite;
+            border: 3px solid #ffd700;
+            box-shadow: 0 12px 40px rgba(245,158,11,0.5), 0 0 0 1px rgba(255,215,0,0.3);
+        }
+        .loyalty-card.blue {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb, #1d4ed8);
+            border: 3px solid #60a5fa;
+            box-shadow: 0 12px 40px rgba(37,99,235,0.4);
+        }
+        .loyalty-card.platinum {
+            background: linear-gradient(135deg, #374151, #9ca3af, #e5e7eb, #9ca3af, #374151);
+            background-size: 400% 400%;
+            animation: shimmer 3s ease infinite;
+            border: 3px solid #e5e7eb;
+            box-shadow: 0 12px 50px rgba(156,163,175,0.6), 0 0 0 1px rgba(255,255,255,0.3);
+        }
+        .platinum .lc-brand { color: #f9fafb; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .platinum .lc-pseudo { color: white; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
+        .platinum .lc-text { color: #e5e7eb; }
+        .platinum .lc-number { color: #d1d5db; }
+        .platinum .lc-chip { background: linear-gradient(135deg, #f3f4f6, #6b7280); }
+        @keyframes shimmer {
+            0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}
+        }
+        .loyalty-card::before {
+            content:'';position:absolute;top:-50px;right:-50px;
+            width:160px;height:160px;border-radius:50%;
+            background:rgba(255,255,255,0.07);
+        }
+        .loyalty-card::after {
+            content:'';position:absolute;bottom:-60px;left:-40px;
+            width:200px;height:200px;border-radius:50%;
+            background:rgba(255,255,255,0.05);
+        }
+        .lc-header { display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1; }
+        .lc-brand { font-family:'Fredoka One',cursive;font-size:1.5rem;letter-spacing:2px; }
+        .gold .lc-brand { color:#3d1f00; }
+        .blue .lc-brand { color:#bfdbfe; }
+        .lc-chip {
+            width:46px;height:32px;border-radius:7px;
+            border:1px solid rgba(255,255,255,0.3);
+        }
+        .gold .lc-chip { background:linear-gradient(135deg,#fef3c7,#d97706); }
+        .blue .lc-chip { background:linear-gradient(135deg,#93c5fd,#1d4ed8); }
+        .lc-pseudo { font-family:'Fredoka One',cursive;font-size:1.2rem;position:relative;z-index:1; }
+        .gold .lc-pseudo { color:#3d1f00; }
+        .blue .lc-pseudo { color:white; }
+        .lc-text { font-size:0.83rem;line-height:1.6;position:relative;z-index:1;flex:1; }
+        .gold .lc-text { color:#4a2800; }
+        .blue .lc-text { color:#bfdbfe; }
+        .lc-footer { display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1; }
+        .lc-stars { font-size:1.3rem;letter-spacing:3px; }
+        .lc-number { font-size:0.75rem;opacity:0.6;font-family:'Nunito',sans-serif; }
+        .gold .lc-number { color:#3d1f00; }
+        .blue .lc-number { color:#bfdbfe; }
+
+        /* ── STATS PAGE ── */
+        .stats-card {
+            width:100%;max-width:420px;
+            background:white;border-radius:20px;
+            padding:22px;border:2px solid var(--border);
+            box-shadow:0 4px 20px rgba(249,115,22,0.08);
+        }
+        .stats-row {
+            display:flex;align-items:center;justify-content:space-between;
+            padding:10px 0;border-bottom:1px solid #f0ebe5;font-size:0.92rem;
+        }
+        .stats-row:last-child{border-bottom:none;}
+        .stats-label{color:var(--muted);font-weight:600;}
+        .stats-val{font-weight:800;color:var(--text);}
+        .loyalty-wrap { margin-bottom: 16px; }
+        .loyalty-card {
+            border-radius: 20px;
+            padding: 24px 28px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 180px;
+        }
+        .loyalty-card.gold {
+            background: linear-gradient(135deg, #b8860b, #ffd700, #b8860b, #ffe066, #b8860b);
+            background-size: 300% 300%;
+            animation: shimmer 4s ease infinite;
+            border: 3px solid #ffd700;
+        }
+        .loyalty-card.blue {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6, #1e40af);
+            border: 3px solid #60a5fa;
+        }
+        @keyframes shimmer {
+            0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}
+        }
+        .loyalty-card::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+        .loyalty-card::after {
+            content: '';
+            position: absolute;
+            bottom: -50px; left: -30px;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        .loyalty-brand {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+        }
+        .loyalty-card.gold .loyalty-brand { color: #3d1f00; }
+        .loyalty-card.blue .loyalty-brand { color: #bfdbfe; }
+        .loyalty-pseudo {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.1rem;
+        }
+        .loyalty-card.gold .loyalty-pseudo { color: #3d1f00; }
+        .loyalty-card.blue .loyalty-pseudo { color: white; }
+        .loyalty-text {
+            font-size: 0.82rem;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .loyalty-card.gold .loyalty-text { color: #4a2800; }
+        .loyalty-card.blue .loyalty-text { color: #dbeafe; }
+        .loyalty-stars { font-size: 1.4rem; letter-spacing: 4px; }
+        .loyalty-chip {
+            width: 40px; height: 28px;
+            background: linear-gradient(135deg, #ffd700, #b8860b);
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+        .loyalty-card.blue .loyalty-chip {
+            background: linear-gradient(135deg, #93c5fd, #3b82f6);
+        }
     </style>
 </head>
 <body>
@@ -80,6 +284,51 @@
     </div>
 
     <div id="game-screen" class="hidden">
+        <!-- NAV -->
+        <div id="nav-bar">
+            <button class="nav-btn active" id="nav-game" onclick="showPage('game')">🏠 Jeu</button>
+            <button class="nav-btn" id="nav-card" onclick="showPage('card')">🎴 Ma Carte</button>
+        </div>
+
+        <!-- PAGE CARTE -->
+        <div id="card-page">
+            <div id="loyalty-card" class="loyalty-card blue">
+                <div class="lc-header">
+                    <div class="lc-brand">🔥 LE FLAMBEAU</div>
+                    <div class="lc-chip"></div>
+                </div>
+                <div class="lc-pseudo" id="lc-pseudo">—</div>
+                <div class="lc-text" id="lc-text">Chargement…</div>
+                <div class="lc-footer">
+                    <div class="lc-stars" id="lc-stars" style="display:none;">⭐⭐⭐</div>
+                    <div class="lc-number" id="lc-number">FLAMBEAU 2026</div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="card-title" style="margin-bottom:10px;">📊 Tes statistiques</div>
+                <div class="stats-row">
+                    <span class="stats-label">🥚 Œufs trouvés</span>
+                    <span class="stats-val" id="sc-eggs">—</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">🏆 Rang</span>
+                    <span class="stats-val" id="sc-rank">—</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">🎖️ Statut</span>
+                    <span class="stats-val" id="sc-status">—</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">👤 Pseudo</span>
+                    <span class="stats-val" id="sc-pseudo">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE JEU -->
+        <div id="game-page">
+
         <div id="game-header">
             <span class="game-title">🏆 Le FLAMBEAU 🔥</span>
             <div class="header-info">
@@ -140,6 +389,7 @@
                 </div>
             </div>
         </div>
+    </div><!-- end game-page -->
     </div>
 </div>
 
@@ -252,6 +502,88 @@ function applyProfile(data) {
     document.getElementById('pseudo-display').textContent = currentPseudo;
     document.getElementById('found-count').textContent = foundEggs.length;
     drawGrid();
+    updateLoyaltyCard();
+    updateStatsCard();
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────
+function showPage(page) {
+    const gamePage = document.getElementById('game-page');
+    const cardPage = document.getElementById('card-page');
+    const btnGame  = document.getElementById('nav-game');
+    const btnCard  = document.getElementById('nav-card');
+    if (page === 'game') {
+        gamePage.style.display = 'block';
+        cardPage.style.display = 'none';
+        btnGame.classList.add('active');
+        btnCard.classList.remove('active');
+    } else {
+        gamePage.style.display = 'none';
+        cardPage.style.display = 'flex';
+        btnGame.classList.remove('active');
+        btnCard.classList.add('active');
+        updateStatsCard();
+    }
+}
+
+// ── CARTE DE FIDÉLITÉ ──────────────────────────────────────
+function updateLoyaltyCard() {
+    const card  = document.getElementById('loyalty-card');
+    const psEl  = document.getElementById('lc-pseudo');
+    const txtEl = document.getElementById('lc-text');
+    const stars = document.getElementById('lc-stars');
+
+    psEl.textContent = currentPseudo;
+
+    const pseudo = currentPseudo;
+    const isJordan  = pseudo === "Aaaaaaaa Jordan";
+    const isBiams   = pseudo === "Aaaa biam's";
+
+    // CARTE PLATINE — Aaaa biam's
+    if (isBiams) {
+        card.className = 'loyalty-card platinum';
+        txtEl.textContent = `Merci d'avoir participé à la chasse aux œufs. Vous obtenez cette carte en récompense, veuillez la conserver précieusement — elle vous offrira des avantages dans nos prochaines activités.`;
+        stars.style.display = 'block';
+        stars.textContent = '⭐⭐⭐⭐⭐⭐⭐⭐';
+        return;
+    }
+
+    // CARTE OR — 7 œufs trouvés
+    if (foundEggs.length >= 7) {
+        card.className = 'loyalty-card gold';
+        txtEl.textContent = `Merci d'avoir participé à la chasse aux œufs. Vous obtenez cette carte en récompense, veuillez la conserver précieusement — elle vous offrira des avantages dans nos prochaines activités.`;
+        stars.style.display = 'block';
+        stars.textContent = isJordan ? '⭐⭐⭐⭐⭐' : '⭐⭐⭐';
+    } else {
+        // CARTE BLEUE — participation
+        card.className = 'loyalty-card blue';
+        txtEl.textContent = `Merci d'avoir participé à la chasse aux œufs. Nous espérons vous voir prochainement !`;
+        if (isJordan) {
+            stars.style.display = 'block';
+            stars.textContent = '⭐⭐⭐⭐⭐';
+        } else {
+            stars.style.display = 'none';
+        }
+    }
+}
+
+// ── STATS ──────────────────────────────────────────────────
+async function updateStatsCard() {
+    document.getElementById('sc-eggs').textContent = foundEggs.length + ' / 7';
+    document.getElementById('sc-pseudo').textContent = currentPseudo;
+
+    const status = foundEggs.length >= 7 ? '🥇 Champion du FLAMBEAU' :
+                   foundEggs.length >= 4 ? '🔥 Chasseur confirmé' :
+                   foundEggs.length >= 1 ? '🐣 Débutant' : '👀 En exploration';
+    document.getElementById('sc-status').textContent = status;
+
+    // Calculer le rang parmi tous les joueurs
+    const { data } = await sb.from('users').select('id, score');
+    if (data) {
+        const sorted = data.sort((a, b) => (b.score||0) - (a.score||0));
+        const rank = sorted.findIndex(p => p.id === currentUser.id) + 1;
+        document.getElementById('sc-rank').textContent = rank > 0 ? `#${rank} sur ${sorted.length}` : '—';
+    }
 }
 
 // ── PSEUDO ────────────────────────────────────────────────
